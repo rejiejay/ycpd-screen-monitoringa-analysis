@@ -1,5 +1,5 @@
 import axios from 'axios';
-import apibasics from '@/components/apibasics';
+import { apibasics } from '@/components/apibasics';
 import config from '@/config';
 
 /**

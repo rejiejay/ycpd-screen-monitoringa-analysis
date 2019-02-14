@@ -12,7 +12,7 @@ const routes = [
         alias: ['/', '/home'],
         name: 'home',
         component: () => import('@/views/index'),
-        meta: { title: '金车管家' },
+        meta: { title: '养车频道数据监控平台' },
     }, 
 ];
 
