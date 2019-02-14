@@ -14,6 +14,11 @@ const routes = [
         component: () => import('@/views/index'),
         meta: { title: '养车频道数据监控平台' },
     }, 
+    {
+        path: '/map',
+        component: () => import('@/views/map'),
+        meta: { title: '养车频道数据监控平台' },
+    }, 
 ];
 
 let router = new Router({
