@@ -7,11 +7,6 @@
 
 <script>
 
-/**
- * 第一种效果不佳
- */
-// import radialGradient from '@/assets/radialGradient.svg';
-
 export default {
     name: 'baidumap',
 
@@ -20,13 +15,6 @@ export default {
             clientWidth: document.body.offsetWidth || document.documentElement.clientWidth || window.innerWidth, // 设备的宽度
             clientHeight: document.body.offsetHeight || document.documentElement.clientHeight || window.innerHeight, // 设备高度
             
-            /**
-             * 第一种效果不佳
-             */
-            // svg: {
-            //     radialGradient: radialGradient,
-            // },
-
             mountBaiduMap: new BMap.Map('BaiduMap'),
         } 
     },
@@ -74,22 +62,7 @@ export default {
             }));
 
             /**
-             * 第一种效果不佳
-             */
-            // for (let i = 0; i < mydata.length; i++) {
-            
-            //     if (mydata[i].longitude && mydata[i].latitude) {
-
-            //         let myPoint = new BMap.Point(mydata[i].longitude, mydata[i].latitude); // 当前位置点
-            //         let myIcon = new BMap.Icon( this.svg.radialGradient, new BMap.Size(20, 20)); // 图标
-            //         let myMarker = new BMap.Marker(myPoint, { icon: myIcon }); // 标记
-
-            //         this.mountBaiduMap.addOverlay(myMarker);
-            //     }
-            // }
-
-            /**
-             * 第二种使用插件
+             * 使用 Heatmap 热力图插件
              */
             let heatmapOverlay = new BMapLib.HeatmapOverlay({ "radius": 20 });
             this.mountBaiduMap.addOverlay(heatmapOverlay);
