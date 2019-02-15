@@ -6,6 +6,7 @@
 </template>
 
 <script>
+import opacity from '@/assets/opacity.svg';
 
 export default {
     name: 'baidumap',
@@ -15,6 +16,10 @@ export default {
             clientWidth: document.body.offsetWidth || document.documentElement.clientWidth || window.innerWidth, // 设备的宽度
             clientHeight: document.body.offsetHeight || document.documentElement.clientHeight || window.innerHeight, // 设备高度
             
+            svg: {
+                opacity: opacity,
+            },
+
             mountBaiduMap: new BMap.Map('BaiduMap'),
 
             // http://ycpd.ichebaoyang.com/baseapi/Public/GetDotData
@@ -44,13 +49,14 @@ export default {
                 style : "dark"  //设置地图风格为高端黑
             });
 
-            this.renderMarkerPoint();
+            this.renderMarkerHeatmap(); // 渲染热力图标记点
+            this.renderMarkerAnimation(); // 渲染新增提示的动画
         },
 
         /**
          * 渲染热力图标记点
          */
-        renderMarkerPoint: function renderMarkerPoint() {
+        renderMarkerHeatmap: function renderMarkerHeatmap() {
             /**
              * 热力图数据
              */
@@ -69,15 +75,100 @@ export default {
              */
             let heatmapOverlay = new BMapLib.HeatmapOverlay({ "radius": 20 });
             this.mountBaiduMap.addOverlay(heatmapOverlay);
-            heatmapOverlay.setDataSet({data:points,max: 100});
+            heatmapOverlay.setDataSet({data:points, max: 100});
             heatmapOverlay.show();
+        },
+
+        /**
+         * 渲染新增提示的动画
+         */
+        renderMarkerAnimation: function renderMarkerAnimation() {
+            const _this = this;
+
+            function ComplexCustomOverlay(point , marker) {  
+                this._point = point;  
+                this._marker = marker;  
+            }
+            
+            ComplexCustomOverlay.prototype = new BMap.Overlay();  
+            ComplexCustomOverlay.prototype.initialize = function(map) {  
+                this._map = map;
+                var div = this._div = document.createElement("div");  
+                div.style.position = "absolute";    
+                var arrow = this._arrow = document.createElement("div");  
+                
+                arrow.style.position = "absolute";   
+                arrow.style.overflow = "hidden";  
+                div.appendChild(arrow);  
+                arrow.className = "css_animation";    
+                
+                if(this._marker) {  
+                    map.addOverlay(this._marker);  
+                }   
+            
+                map.getPanes().labelPane.appendChild(div);  
+                
+                return div;  
+            }
+
+            ComplexCustomOverlay.prototype.draw = function() {  
+                var map = this._map;  
+                var pixel = map.pointToOverlayPixel(this._point);  
+                this._div.style.left = pixel.x - 25 + "px";  
+                this._div.style.top  = pixel.y - 25 + "px";  
+            }
+            
+            ComplexCustomOverlay.prototype.setPosition = function(point) {  
+                this._point = point;
+                this.draw();
+                if (this._marker) {
+                    this._marker.setPosition(this._point);  
+                }
+            }
+            
+            ComplexCustomOverlay.prototype.getPosition = function() {  
+                return this._point ;  
+            }
+  
+            function addMarker(_lon, _lat) {  
+                var point = new BMap.Point(_lon, _lat);  
+                let myIcon = new BMap.Icon(_this.svg.opacity, new BMap.Size(1, 1));
+                var marker = new BMap.Marker(point, { icon: myIcon }); // 创建标注      
+                var plex = new ComplexCustomOverlay(point, marker); // 创建标注      
+    
+                return plex;
+            }
+
+            var myAddMarker = addMarker(114.059560, 22.542860);  
+            this.mountBaiduMap.addOverlay(myAddMarker);  
+
+            /**
+             * 清除动画的方法
+             */
+            setTimeout(() => {
+                var allOverlay = _this.mountBaiduMap.getOverlays();
+
+                allOverlay.map(val => {
+                    /**
+                     * 判断是否热力图
+                     */
+                    if (!val.heatmap) {
+                        /**
+                         * 清除所有除热力图的遮罩物
+                         * 也就是动画
+                         */
+                        _this.mountBaiduMap.removeOverlay(val);
+                    }
+                });
+            }, 3000);
+
         },
     }
 }
 
 </script>
 
-<style scoped lang="less">
+<style lang="less">
 @black1: #303133;
 @black2: #606266;
 @black3: #909399;
@@ -88,6 +179,23 @@ export default {
     font-size: 14px;
     width: 100%;
     height: 100%;
+}
+
+.css_animation {    
+    height: 50px;    
+    width: 50px;    
+    border-radius: 25px;    
+    background: rgba(250, 0, 0, 0.9);    
+    transform: scale(0);    
+    animation: my_css_animation 3s;    
+    animation-iteration-count: 1;
+}    
+
+@keyframes my_css_animation {    
+    to {
+        transform: scale(2);
+        background: rgba(0, 0, 0, 0);    
+    }
 }
 
 </style>
