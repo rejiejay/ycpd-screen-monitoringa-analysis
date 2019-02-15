@@ -8,6 +8,8 @@
 <script>
 // 资源类
 import opacity from '@/assets/opacity.svg';
+// 工具类
+import TimeConver from '@/utils/TimeConver';
 // 请求类
 import { getDotData, getDotService } from '@/api/index';
 
@@ -43,7 +45,8 @@ export default {
 
         this.initMarkerHeatmap(); // 初始化热力图标记点
 
-        this.renderMarkerAnimation(); // 渲染新增提示的动画
+        
+        this.initDotService(); // 初始化网点服务动态数据
     },
 
     methods: {
@@ -72,6 +75,17 @@ export default {
             const _this = this;
 
             /**
+             * 使用 Heatmap 热力图插件
+             * 渲染热力图标记点
+             */
+            function renderMarkerHeatmap() {
+                let heatmapOverlay = new BMapLib.HeatmapOverlay({ "radius": 20 });
+                _this.mountBaiduMap.addOverlay(heatmapOverlay);
+                heatmapOverlay.setDataSet({data: _this.heatmapList, max: 100});
+                heatmapOverlay.show();
+            }
+
+            /**
              * 请求获取所有网点数据
              */
             getDotData()
@@ -84,7 +98,7 @@ export default {
                         lat: val.lat,
                         count: 100,
                     }));
-                    _this.renderMarkerHeatmap(); // 渲染热力图标记点
+                    renderMarkerHeatmap(); // 渲染热力图标记点
 
                 } else {
                     console.error(value);
@@ -98,16 +112,30 @@ export default {
         },
 
         /**
-         * 渲染热力图标记点
+         * 初始化网点服务动态数据
          */
-        renderMarkerHeatmap: function renderMarkerHeatmap() {
+        initDotService: function initDotService() {
+            
             /**
-             * 使用 Heatmap 热力图插件
+             * 获取网点服务动态数据
              */
-            let heatmapOverlay = new BMapLib.HeatmapOverlay({ "radius": 20 });
-            this.mountBaiduMap.addOverlay(heatmapOverlay);
-            heatmapOverlay.setDataSet({data: this.heatmapList, max: 100});
-            heatmapOverlay.show();
+            getDotService()
+            .then(response => {
+                let value = response.data;
+
+                if (value.Code === 200 && !value.Msg) {
+                    console.log(value);
+                } else {
+                    console.error(value);
+                    alert(`获取网点服务动态数据, 原因: ${value.Msg}`);
+                }
+
+            }).catch(error => {
+                console.error(error);
+                alert(`获取网点服务动态数据, 原因: ${error.message}`);
+            });
+
+            this.renderMarkerAnimation(); // 渲染新增提示的动画
         },
 
         /**
