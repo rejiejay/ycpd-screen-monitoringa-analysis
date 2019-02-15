@@ -15,7 +15,7 @@
             </div>
             <div class="monitoringData">
                 <div class="serviceData">
-                    <div style="font-size:24px">已完成服务</div>
+                    <div style="font-size:16px">已完成服务</div>
                     <div class="table">
                         <table width="100%" border="1" cellspacing="0" cellpadding="0">
                             <tr>
@@ -28,26 +28,26 @@
                             </tr>
                             <tr>
                                 <td>今日订单</td>
-                                <td>{{clearCarData}}</td>
+                                <td style="color:#2D61B1">{{serviceData.today_all}}</td>
+                                <td style="color:#2D61B1" v-for="(item,index) in serviceData.today" :key="index">{{item.len}}</td>
+                                <!-- <td></td>
                                 <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
+                                <td></td> -->
                             </tr>
                             <tr>
                                 <td>最近30天</td>
+                                <td style="color:#2D61B1">{{serviceData.near_all}}</td>
+                                <td style="color:#2D61B1" v-for="(item,index) in serviceData.near" :key="index">{{item.len}}</td>
+                                <!-- <td></td>
                                 <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
+                                <td></td> -->
                             </tr>
                         </table>
                     </div>
                 </div>
 
                 <div class="dot">
-                    <div style="marginTop:20px;fontSize:22px;marginBottom:20px">上线网点</div>
+                    <div style="marginTop:20px;fontSize:16px;marginBottom:10px">上线网点</div>
                     <table width="100%" border="1" cellspacing="0" cellpadding="0">
                         <tr>
                             <td>全部</td>
@@ -67,7 +67,7 @@
                 </div>
 
                 <div class="dynamic">
-                    <div style="marginTop:20px;fontSize:22px;marginBottom:20px">服务动态</div>
+                    <div style="marginTop:20px;fontSize:16px;marginBottom:10px">服务动态</div>
                     <ul class="header">
                         <li>时间</li>
                         <li>区域</li>
@@ -101,70 +101,81 @@ export default {
             clientHeight: window.document.documentElement.clientHeight, //|| window.document.documentElement.clientHeight || window.innerHeight, // 设备高度
 
             serviceData:{
-                today:{
-                    total:1000,     // 总数
-                    clearCar:{      // 洗车
-                        total:415,
-                        data:[
-                            {time:'17:51',number:1},
-                            {time:'17:52',number:1},
-                            {time:'17:53',number:1},
-                            {time:'17:54',number:1},
-                            {time:'17:55',number:1},
-                        ]
+                today_all:100,
+                near_all:200,
+                today:[
+                   {type:1,len:30},
+                   {type:2,len:30},
+                   {type:3,len:22},
+                   {type:4,len:18},
+                ],
+                near:[
+                   {type:1,len:50},
+                   {type:2,len:60},
+                   {type:3,len:40},
+                   {type:4,len:50},
+                ],
+                details:[
+                    {
+                        whattime: "2019-02-15T15:58:00.997",
+                        area: "佛山市",
+                        carno: "粤XVM338",
+                        type: 1,
+                        typedesc: "洗车",
+                        dotname: "佛山大良加油站漫途汽服店",
+                        lng: 113.249232,
+                        lat: 22.850989
                     },
-                    gas:300,        // 加油   
-                    maintain:200,   // 保养
-                    Complaint:100,  // 投诉
-                },
-                // 近30天
-                nearly30Days:{
-                    total:2000,     // 总数
-                    clearCar:800,   // 洗车
-                    gas:600,        // 加油   
-                    maintain:400,   // 保养
-                    Complaint:200,  // 投诉
-                }
+                    {
+                        whattime: "2019-02-15T15:59:00.997",
+                        area: "佛山市",
+                        carno: "粤XVM338",
+                        type: 2,
+                        typedesc: "加油",
+                        dotname: "佛山大良加油站漫途汽服店",
+                        lng: 113.249232,
+                        lat: 22.850989
+                    },
+                ]
             },
 
-            clearCarData:'',
+            todayTotal:'',  // 今日总条数
+            nearTotal:'',   // 最近总条数
             timer:null
         } 
     },
     mounted: function mounted() { },
     
     created() {
-        console.log(this.clientHeight)
-         let data = this.serviceData.today
-         let clearCarOldTotal = data.clearCar.total-data.clearCar.data.length
-         this.clearCarData = clearCarOldTotal
-         console.log(clearCarOldTotal)
-
-        
+        let data = this.serviceData
         this.timer = window.setInterval(()=>{
+            for(let i=0;i<data.details.length;i++){
+                let time = parseInt(new Date(data.details[i].whattime).getTime()/1000) 
+                console.log(time)
+                let date = parseInt(new Date().getTime()/1000-10*60) 
 
-            let basetotal = data.clearCar.total-data.clearCar.data.length;
+                console.log('数据时间:'+time+'现在时间'+date)
 
-            for(let i=0;i<data.clearCar.data.length;i++){
-                console.log(111)
-                console.log(data.clearCar.data[i].time)
-                let date = new Date()
-                let hour =  date.getHours()
-                let min = date.getMinutes()
-                let allMin = hour*60+min-10
-                
-                let thistime = data.clearCar.data[i].time;
-                let thishour =  parseInt(thistime.split(':')[0]);
-                let thismin =  parseInt(thistime.split(':')[1]);
-                let thisallMin = thishour*60+thismin;
-                console.log(allMin,thisallMin)
+                // 数据时间:1550215530997现在时间1550215582074
 
-                if (allMin > thisallMin) {
-                    basetotal += data.clearCar.data[i].number
-                } 
-                this.clearCarData = basetotal
+                if(time==date){
+                    if(data.details[i].type===1){
+                        data.today_all++
+                        data.near_all++
+                        data.today[0].len++
+                        data.near[0].len++
+                        console.log('洗车')
+                    }
+                    if(data.details[i].type===2){
+                        data.today_all++
+                        data.near_all++
+                        data.today[1].len++
+                         data.near[1].len++
+                        console.log('加油')
+                    }
+                }
             }
-        },60000)
+        },1000)
 
         
          
@@ -188,43 +199,55 @@ export default {
     font-size: 14px;
     width: 100%;
     // min-height: 100%;
-    background-color: #04073c;
+    background-color: #0F1729;
     #header {
         height: 88px;
         width: 100%;
         color: #fff;
+        background-color: #152038;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0px 30px;
+        box-sizing: border-box;
         .title {
             color: #fff;
-            font-size: 30px;
+            font-size: 24px;
+            font-weight: 600;
             height: 100%;
             display: flex;
             align-items: center;
             justify-content: center;
         }
         .city {
-            width:6%;
+            font-size: 14px;
+            width:100px;
             height: 40px;
             border: 1px solid #fff;
             border-radius: 20px;
             display: flex;
             justify-content: center;
             align-items: center;
-            position: absolute;
-            right: 30px;
-            top: 2px;
+            // position: absolute;
+            // right: 30px;
+            // top: 2px;
         }
     }
     #mainBox {
+        padding-top: 20px;
+        font-size: 14px;
         .monitoringData {
             width: 50%;
             float:right;
             // background-color: #ccc;
+            padding-right: 30px;
             color: #c1c7d3;
             .serviceData {
+               
                .table {
                    table {
                        border-color: #29467c;
-                       margin-top: 20px;
+                       margin-top: 10px;
                        tr {
                            td:first-child {
                                width: 80px;
@@ -233,7 +256,7 @@ export default {
                                height: 50px;
                                width: 60px;
                                text-align: center;
-                               line-height: 40px;
+                               line-height: 50px;
                            }
                        }
                    }
@@ -243,9 +266,9 @@ export default {
                 table {
                     border-color: #29467c;
                     td {
-                        height: 60px;
+                        height: 50px;
                         text-align: center;
-                        line-height: 60px;
+                        line-height: 50px;
                     }
                 }
             }
@@ -256,8 +279,8 @@ export default {
                     border:1px solid #29467c;
                     li {
                         flex: 1;
-                        height: 60px;
-                        line-height: 60px;
+                        height: 50px;
+                        line-height: 50px;
                         text-align: center;
                         border-right: 1px solid #29467c;
                     }
