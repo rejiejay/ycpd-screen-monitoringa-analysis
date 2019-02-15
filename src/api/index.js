@@ -1,42 +1,26 @@
 import axios from 'axios';
-import { apibasics } from '@/components/apibasics';
+// import { apibasics } from '@/components/apibasics';
 import config from '@/config';
 
 /**
- * 获取登录用的token
+ * 获取所有网点数据
  */
-export function getBaseToken() {
+export function getDotData() {
     return axios({
-        url: `${config.url.origin}/cdimms/server/index`,
-        method: 'get',
+        url: `${config.url.origin}/baseapi/Public/GetDotData`,
+        method: 'get'
     });
 }
 
 /**
- * 获取登录用的token
- * @param {string} username 用户名
- * @param {string} password 密码
- * @param {string} loginToken 人机验证成功后返的token
+ * 获取网点服务动态数据
+ * 开始时间和结束时间相差10分钟
+ * @param {string} beginTime 开始时间 2019-02-15 15:13:54
+ * @param {string} endTime 结束时间 2019-02-15 15:13:54
  */
-export function postLogin(username, password, loginToken) {
+export function getDotService(beginTime, endTime) {
     return axios({
-        url: `${config.url.origin}/cdimms/server/loginByPC`,
-        method: 'post',
-        headers: {'Content-Type': 'application/json'},
-        data: {
-            userName: username,
-            passwd: password,
-            token: loginToken,
-        }
-    });
-}
-
-/**
- * 退出登录
- */
-export function getlogout() {
-    return apibasics({
-        url: `${config.url.origin}/cdimms/server/logout`,
+        url: `${config.url.origin}/baseapi/Public/GetDotService?beginTime=${beginTime}&endTime=${endTime}`,
         method: 'get'
     });
 }
