@@ -16,6 +16,9 @@ export default {
             clientHeight: document.body.offsetHeight || document.documentElement.clientHeight || window.innerHeight, // 设备高度
             
             mountBaiduMap: new BMap.Map('BaiduMap'),
+
+            // http://ycpd.ichebaoyang.com/baseapi/Public/GetDotData
+            // 后台数据
         } 
     },
 
