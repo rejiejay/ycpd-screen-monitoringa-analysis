@@ -309,8 +309,13 @@ export default {
             var myGeo = new BMap.Geocoder();     
             // 将地址解析结果显示在地图上，并调整地图视野    
             myGeo.getPoint(districtName, function(point){      
-                if (point) {      
-                    _this.mountBaiduMap.centerAndZoom(point, 11);
+                if (point) {
+                    let zoom = 11; // 层级默认为 11
+                    if (districtName === '广东省') {
+                        zoom = 9;
+                    }
+
+                    _this.mountBaiduMap.centerAndZoom(point, zoom);
                 }      
             });
 
@@ -446,7 +451,93 @@ export default {
             let isHandleServiceList = false;
 
             /**
-             * 渲染 渲染新增提示的动画
+             * 遮罩动画的类
+             */
+            function ComplexCustomOverlay(point , marker) {  
+                this._point = point;  
+                this._marker = marker;  
+            }
+            ComplexCustomOverlay.prototype = new BMap.Overlay();  
+            ComplexCustomOverlay.prototype.initialize = function(map) {  
+                this._map = map;
+                var div = this._div = document.createElement("div");  
+                div.style.position = "absolute";    
+                var arrow = this._arrow = document.createElement("div");  
+                
+                arrow.style.position = "absolute";   
+                arrow.style.overflow = "hidden";  
+                div.appendChild(arrow);  
+                arrow.className = "css_animation";    
+                
+                if(this._marker) {  
+                    map.addOverlay(this._marker);  
+                }   
+            
+                map.getPanes().labelPane.appendChild(div);  
+                
+                return div;  
+            }
+            ComplexCustomOverlay.prototype.draw = function() {  
+                var map = this._map;  
+                var pixel = map.pointToOverlayPixel(this._point);  
+                this._div.style.left = pixel.x - 25 + "px";  
+                this._div.style.top  = pixel.y - 25 + "px";  
+            }
+            ComplexCustomOverlay.prototype.setPosition = function(point) {  
+                this._point = point;
+                this.draw();
+                if (this._marker) {
+                    this._marker.setPosition(this._point);  
+                }
+            }
+            ComplexCustomOverlay.prototype.getPosition = function() {  
+                return this._point ;  
+            }
+  
+            /**
+             * 新增遮罩动画的方法
+             */
+            function addComplexMarker(_lon, _lat) {  
+                var point = new BMap.Point(_lon, _lat);  
+                let myIcon = new BMap.Icon(_this.svg.opacity, new BMap.Size(1, 1));
+                var marker = new BMap.Marker(point, { icon: myIcon }); // 创建标注      
+                var plex = new ComplexCustomOverlay(point, marker); // 创建标注      
+    
+                return plex;
+            }
+
+            /**
+             * 初始化提示的动画
+             */
+            function renderMarkerAnimation(longitude, latitude) {
+                _this.mrkerAnimationingCount++; // 每执行一次 正在执行标注的动画的数量 加一
+                
+
+                let myAddMarker = addComplexMarker(longitude, latitude);  
+                _this.mountBaiduMap.addOverlay(myAddMarker);  
+
+                /**
+                 * 清除动画的方法
+                 */
+                setTimeout(function () {
+                    /**
+                     * 3秒表示执行完毕
+                     * 正在执行标注的动画的数量 减一
+                     */
+                    _this.mrkerAnimationingCount--;
+
+                    // 判断是否所有 动画是否执行完毕
+                    if (_this.mrkerAnimationingCount <= 0) {
+                        // 所有动画执行完毕的情况下 清空动画标注
+                        _this.clearAllOverlay();
+                        _this.renderBoundary(); // 清空过后要记得渲染省份
+                    }
+
+                }, 3000);
+            }
+
+            /**
+             * 出身新增提示的动画
              */
             let initMarkerAnimation = () => {
                 // 当前时间戳
@@ -463,7 +554,7 @@ export default {
                      */
                     if (val.timestamp > nowTimestamp && val.timestamp < nextTimestamp ) {
                         // 如果是在当前的时间, 则将提示动画渲染到地图上
-                        _this.renderMarkerAnimation(val.lng, val.lat);
+                        renderMarkerAnimation(val.lng, val.lat);
                     }
                 });
             }
@@ -605,110 +696,26 @@ export default {
         },
 
         /**
-         * 渲染新增提示的动画
+         * 清空 除热力图外 所有标注
          */
-        renderMarkerAnimation: function renderMarkerAnimation(longitude, latitude) {
+        clearAllOverlay: function clearAllOverlay() {
             const _this = this;
 
-            _this.mrkerAnimationingCount++; // 每执行一次 正在执行标注的动画的数量 加一
+            var allOverlay = this.mountBaiduMap.getOverlays();
 
-            function ComplexCustomOverlay(point , marker) {  
-                this._point = point;  
-                this._marker = marker;  
-            }
-            
-            ComplexCustomOverlay.prototype = new BMap.Overlay();  
-            ComplexCustomOverlay.prototype.initialize = function(map) {  
-                this._map = map;
-                var div = this._div = document.createElement("div");  
-                div.style.position = "absolute";    
-                var arrow = this._arrow = document.createElement("div");  
-                
-                arrow.style.position = "absolute";   
-                arrow.style.overflow = "hidden";  
-                div.appendChild(arrow);  
-                arrow.className = "css_animation";    
-                
-                if(this._marker) {  
-                    map.addOverlay(this._marker);  
-                }   
-            
-                map.getPanes().labelPane.appendChild(div);  
-                
-                return div;  
-            }
-
-            ComplexCustomOverlay.prototype.draw = function() {  
-                var map = this._map;  
-                var pixel = map.pointToOverlayPixel(this._point);  
-                this._div.style.left = pixel.x - 25 + "px";  
-                this._div.style.top  = pixel.y - 25 + "px";  
-            }
-            
-            ComplexCustomOverlay.prototype.setPosition = function(point) {  
-                this._point = point;
-                this.draw();
-                if (this._marker) {
-                    this._marker.setPosition(this._point);  
-                }
-            }
-            
-            ComplexCustomOverlay.prototype.getPosition = function() {  
-                return this._point ;  
-            }
-  
-            function addMarker(_lon, _lat) {  
-                var point = new BMap.Point(_lon, _lat);  
-                let myIcon = new BMap.Icon(_this.svg.opacity, new BMap.Size(1, 1));
-                var marker = new BMap.Marker(point, { icon: myIcon }); // 创建标注      
-                var plex = new ComplexCustomOverlay(point, marker); // 创建标注      
-    
-                return plex;
-            }
-
-            var myAddMarker = addMarker(longitude, latitude);  
-            this.mountBaiduMap.addOverlay(myAddMarker);  
-
-            /**
-             * 清除动画的方法
-             */
-            setTimeout(() => {
+            allOverlay.map(val => {
                 /**
-                 * 3秒表示执行完毕
-                 * 正在执行标注的动画的数量 减一
+                 * 判断是否热力图
                  */
-                _this.mrkerAnimationingCount--;
-
-                // 判断是否所有 动画是否执行完毕
-                if (_this.mrkerAnimationingCount <= 0) {
-                    // 所有动画执行完毕的情况下 清空动画标注
-                    _this.clearAllOverlay();
-                    _this.renderBoundary(); // 清空过后要记得渲染省份
+                if (!val.heatmap) {
+                    /**
+                     * 清除所有除热力图的遮罩物
+                     * 也就是所有动画标注
+                     */
+                    _this.mountBaiduMap.removeOverlay(val);
                 }
-
-            }, 3000);
+            });
         },
-    },
-
-    /**
-     * 清空 除热力图外 所有标注
-     */
-    clearAllOverlay: function clearAllOverlay() {
-        var allOverlay = _this.mountBaiduMap.getOverlays();
-
-        allOverlay.map(val => {
-            console.log(val)
-            /**
-             * 判断是否热力图
-             */
-            if (!val.heatmap) {
-                /**
-                 * 清除所有除热力图的遮罩物
-                 * 也就是所有动画标注
-                 */
-                _this.mountBaiduMap.removeOverlay(val);
-            }
-        });
     },
 }
 
