@@ -2,6 +2,6 @@
 module.exports = {
     url: {
         // 请求源
-        origin: 'http://cdimms.api2.hotgz.com',
+        origin: 'http://ycpd.ichebaoyang.com',
     },
 };

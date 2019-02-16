@@ -357,10 +357,125 @@ export default {
             this.mountBaiduMap.centerAndZoom(new BMap.Point(114.059560, 22.542860), 11); // 初始化地图，设置中心点坐标(深圳福田) 和地图级别  
             this.mountBaiduMap.enableScrollWheelZoom(true); //开启鼠标滚轮缩放
             
-            this.mountBaiduMap.setMapStyle({ 
-                features: ["road", "water", "land"], // point（兴趣点）、road（道路）、water（河流）、land（陆地）、building（建筑物）
-                style : "dark",  //设置地图风格为高端黑
-            });
+            // this.mountBaiduMap.setMapStyle({ 
+            //     features: ["water", "land"], // point（兴趣点）、road（道路）、water（河流）、land（陆地）、building（建筑物）
+            //     style : "dark",  //设置地图风格为高端黑
+            // });
+            this.mountBaiduMap.setMapStyle({
+            styleJson: [
+                {
+                    "featureType": "land",
+                    "elementType": "geometry",
+                    "stylers": {
+                        "color": "#212121"
+                    }
+                },
+                {
+                    "featureType": "building",
+                    "elementType": "geometry",
+                    "stylers": {
+                        "color": "#2b2b2b"
+                    }
+                },
+                {
+                    "featureType": "highway",
+                    "elementType": "all",
+                    "stylers": {
+                        "visibility": "off",
+                        "lightness": -42,
+                        "saturation": -91
+                    }
+                },
+                {
+                    "featureType": "arterial",
+                    "elementType": "geometry",
+                    "stylers": {
+                        "lightness": -77,
+                        "saturation": -94
+                    }
+                },
+                {
+                    "featureType": "green",
+                    "elementType": "geometry",
+                    "stylers": {
+                        "color": "#1b1b1b"
+                    }
+                },
+                {
+                    "featureType": "water",
+                    "elementType": "geometry",
+                    "stylers": {
+                        "color": "#181818"
+                    }
+                },
+                {
+                    "featureType": "subway",
+                    "elementType": "geometry.stroke",
+                    "stylers": {
+                        "color": "#181818"
+                    }
+                },
+                {
+                    "featureType": "railway",
+                    "elementType": "geometry",
+                    "stylers": {
+                        "lightness": -52
+                    }
+                },
+                {
+                    "featureType": "all",
+                    "elementType": "labels.text.stroke",
+                    "stylers": {
+                        "color": "#313131"
+                    }
+                },
+                {
+                    "featureType": "all",
+                    "elementType": "labels.text.fill",
+                    "stylers": {
+                        "color": "#8b8787"
+                    }
+                },
+                {
+                    "featureType": "manmade",
+                    "elementType": "geometry",
+                    "stylers": {
+                        "color": "#1b1b1b"
+                    }
+                },
+                {
+                    "featureType": "local",
+                    "elementType": "geometry",
+                    "stylers": {
+                        "lightness": -75,
+                        "saturation": -91
+                    }
+                },
+                {
+                    "featureType": "subway",
+                    "elementType": "geometry",
+                    "stylers": {
+                        "lightness": -65
+                    }
+                },
+                {
+                    "featureType": "railway",
+                    "elementType": "all",
+                    "stylers": {
+                        "lightness": -40
+                    }
+                },
+                {
+                    "featureType": "boundary",
+                    "elementType": "geometry",
+                    "stylers": {
+                        "color": "#8b8787",
+                        "weight": "1",
+                        "lightness": -29
+                    }
+                }
+            ]});
+            
         },
 
         /**
