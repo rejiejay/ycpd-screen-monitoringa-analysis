@@ -11,6 +11,10 @@ import '@/styles/index.less'; // global css
 import Index from './index.vue';
 import router from './router';
 
+import animated from 'animate.css' // npm install animate.css --save安装，在引入
+
+Vue.use(animated);
+
 Vue.use(ElementUI, { locale });
 
 Vue.config.productionTip = false;

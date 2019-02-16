@@ -51,7 +51,7 @@
                             <table width="100%" border="1" cellspacing="0" cellpadding="0">
                                 <tr style="backgroundColor:#121C32">
                                     <td></td>
-                                    <td>类型</td>
+                                    <td>全部</td>
                                     <td>洗车</td>
                                     <td>加油</td>
                                     <td>保养</td>
@@ -107,15 +107,15 @@
                             <li>网点</li>
                         </ul>
                         <ul class="content">
-                            <transition-group name="slide-fade" tag='span'> 
-                                <li v-for="item in detailsList" :key="item.id">    
-                                    <span>{{item.whattime.substr(11,20)}}</span>
+                            <!-- <transition-group name="slide-fade" tag='span'>  -->
+                                <li class="animated fadeInDown" v-for="item in detailsList" :key="item.id">    
+                                    <span>{{item.whattime}}</span>
                                     <span>{{item.area}}</span>
                                     <span>{{item.carno}}</span>
                                     <span>{{item.typedesc}}</span>
                                     <span>{{item.dotname}}</span>       
                                 </li>  
-                            </transition-group>
+                            <!-- </transition-group> -->
                         </ul>
                     </div>
                 </div>
@@ -706,6 +706,22 @@ export default {
                         let newdetails = data.details[i];
                         newdetails.id = Math.random();
 
+                        let date = new Date(data.details[i].whattime)
+                        let hours = date.getHours()
+                        let min = date.getMinutes()
+                        let sec = date.getSeconds()
+                        if(hours<10){
+                            hours = '0'+hours
+                        }
+                        if(min<10){
+                            min = '0'+min
+                        }
+                        if(sec<10){
+                            sec = '0'+sec
+                        }
+                        // console.log(hours+':'+min+':'+sec)
+                        newdetails.whattime = hours+':'+min+':'+sec
+
                         _this.detailsList.unshift(newdetails);
 
                         if (_this.detailsList.length > 5) {
@@ -877,19 +893,19 @@ export default {
 @black3: #909399;
 @black4: #C0C4CC;
 .slide-fade-enter-active {
-  transition: all 1s ease;
+  transition: all 0.5s ease-out;
 }
 .slide-fade-leave-active {
-  transition: all 1s cubic-bezier(1.0, 0.5, 0.8, 1.0);
+  transition: all 0s ease-out;
 }
-.slide-fade-enter 
-/* .slide-fade-leave-active for below version 2.1.8 */ {
-  transform: translateY(-20px);
+.slide-fade-enter  {
+  transform: translateY(-15px);
 }
 .slide-fade-leave-to {
-    opacity: 0;
-    transition: all 0s;
-    
+    // opacity: 0;
+    // transition: all 0s;
+    transition-duration:0s
+    // transform: translateY(0px);
 }
 
 .home {
@@ -1016,6 +1032,7 @@ export default {
                 .header {
                     display: flex;
                     border:1px solid #29467c;
+                     border-bottom:none;
                     li {
                         flex: 1;
                         height: 50px;
@@ -1029,18 +1046,24 @@ export default {
                     }
                 }
                 .content {
+                    overflow: hidden;
+                    border: 1px solid #29467c;
+                    border-top:none;
                     li {
                         // width: 100%;
                         display: flex;
-                        min-height: 36px;
-                        border: 1px solid #29467c;
-                        border-top: none;
+                        min-height: 40px;
+                        // border: 1px solid #29467c;
+                        border-top: 1px solid #29467c;
                         span {
                             flex:1;
                             // display: block;
                             text-align: center;
-                            line-height: 36px;
+                            // line-height: 36px;
                             border-right: 1px solid #29467c;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
                         }
                         span:last-child {
                             flex:2;
