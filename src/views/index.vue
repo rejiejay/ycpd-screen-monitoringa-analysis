@@ -7,7 +7,16 @@
                 <span>养车频道数据监控平台</span>
             </div>
             <div class="city">
-                <span>深圳市</span>
+                <el-dropdown trigger="click">
+                    <span class="el-dropdown-link">
+                        {{districtName}}<i class="el-icon-arrow-down el-icon--right"></i>
+                    </span>
+                    <el-dropdown-menu slot="dropdown">
+                        <el-dropdown-item>广东省</el-dropdown-item>
+                        <el-dropdown-item>深圳市</el-dropdown-item>
+                        <el-dropdown-item>广州市</el-dropdown-item>
+                    </el-dropdown-menu>
+                </el-dropdown>
             </div>
         </div>
         <div class="flex-start" id="mainBox">
@@ -79,15 +88,21 @@
                             <li>类型</li>
                             <li>网点</li>
                         </ul>
-                        <ul class="content">
-                            <li class="animated bouncelnRight" v-for="(item,index) in detailsList" :key="index">
-                                <span>{{item.whattime.substr(11,20)}}</span>
-                                <span>{{item.area}}</span>
-                                <span>{{item.carno}}</span>
-                                <span>{{item.typedesc}}</span>
-                                <span>{{item.dotname}}</span>
-                            </li>
-                        </ul>
+                    
+                            <ul class="content">
+                                <transition-group name="slide-fade" tag='span'> 
+                                    <li v-for="item in detailsList" :key="item.whattime">    
+                                            <span>{{item.whattime.substr(11,20)}}</span>
+                                            <span>{{item.area}}</span>
+                                            <span>{{item.carno}}</span>
+                                            <span>{{item.typedesc}}</span>
+                                            <span>{{item.dotname}}</span>  
+                                    
+                                            
+                                    </li>  
+                                </transition-group>
+                            </ul>
+                        
                     </div>
                 </div>
             </div>
@@ -127,18 +142,8 @@ export default {
                    {type:4,len:50},
                 ],
                 details:[
-                    // {
-                    //     whattime: "2019-02-15T17:36:00",
-                    //     area: "佛山市",
-                    //     carno: "粤XVM338",
-                    //     type: 1,
-                    //     typedesc: "洗车",
-                    //     dotname: "佛山大良加油站漫途汽服店",
-                    //     lng: 113.249232,
-                    //     lat: 22.850989
-                    // },
                     {
-                        whattime: "2019-02-16T10:10:40",
+                        whattime: "2019-02-16T10:50:40",
                         area: "佛山市",
                         carno: "粤XVM338",
                         type: 2,
@@ -148,7 +153,7 @@ export default {
                         lat: 22.850989
                     },
                     {
-                        whattime: "2019-02-16T10:10:05",
+                        whattime: "2019-02-16T11:12:46",
                         area: "佛山市",
                         carno: "粤XVM338",
                         type: 2,
@@ -158,7 +163,7 @@ export default {
                         lat: 22.850989
                     },
                     {
-                        whattime: "2019-02-16T10:10:10",
+                        whattime: "2019-02-16T11:12:10",
                         area: "佛山市",
                         carno: "粤XVM338",
                         type: 2,
@@ -168,7 +173,7 @@ export default {
                         lat: 22.850989
                     },
                     {
-                        whattime: "2019-02-16T10:10:15",
+                        whattime: "2019-02-16T11:12:15",
                         area: "佛山市",
                         carno: "粤XVM338",
                         type: 2,
@@ -178,7 +183,7 @@ export default {
                         lat: 22.850989
                     },
                     {
-                        whattime: "2019-02-16T10:10:20",
+                        whattime: "2019-02-16T11:12:20",
                         area: "佛山市",
                         carno: "粤XVM338",
                         type: 2,
@@ -188,7 +193,7 @@ export default {
                         lat: 22.850989
                     },
                     {
-                        whattime: "2019-02-16T10:10:25",
+                        whattime: "2019-02-16T11:12:25",
                         area: "佛山市",
                         carno: "粤XVM338",
                         type: 2,
@@ -198,7 +203,7 @@ export default {
                         lat: 22.850989
                     },
                     {
-                        whattime: "2019-02-16T10:10:30",
+                        whattime: "2019-02-16T11:12:30",
                         area: "佛山市",
                         carno: "粤XVM338",
                         type: 2,
@@ -212,6 +217,8 @@ export default {
             },
             timer: null,
             detailsList: [],
+
+            districtName: '广东省', // 行政区域
             
             svg: {
                 opacity: opacity,
@@ -272,16 +279,81 @@ export default {
          * 初始化百度地图
          */
         initBaiduMap: function initBaiduMap() {
-            this.mountBaiduMap = new BMap.Map('BaiduMap'); // 创建地图实例  
+            const _this = this;
+            this.mountBaiduMap = new BMap.Map('BaiduMap', { enableMapClick: false }); // 创建地图实例，关闭底图可点功能
             
-            this.mountBaiduMap.centerAndZoom(new BMap.Point(114.059560, 22.542860), 13); // 初始化地图，设置中心点坐标(深圳福田) 和地图级别  
+            this.mountBaiduMap.centerAndZoom(new BMap.Point(114.059560, 22.542860), 11); // 初始化地图，设置中心点坐标(深圳福田) 和地图级别  
             this.mountBaiduMap.enableScrollWheelZoom(true); //开启鼠标滚轮缩放
             this.mountBaiduMap.addControl(new BMap.NavigationControl());
             
 			this.mountBaiduMap.setMapStyle({ 
                 features: ["road", "water", "land"], // point（兴趣点）、road（道路）、water（河流）、land（陆地）、building（建筑物）
-                style : "dark"  //设置地图风格为高端黑
+                style : "dark",  //设置地图风格为高端黑
             });
+
+            var blist = [];
+            var bdary = new BMap.Boundary();
+            bdary.get(this.districtName, function (rs) {       //获取行政区域
+                var count = rs.boundaries.length; // 行政区域的点有多少个
+
+                // 未能获取当前输入行政区域
+                if (count === 0) {
+                    alert('未能获取当前输入行政区域');
+                    return;
+                }
+
+                for (var i = 0; i < count; i++) {
+                    blist.push({ points: rs.boundaries[i], name: _this.districtName });
+                };
+                
+                drawBoundary();
+            });
+
+            function drawBoundary() {
+                // 包含所有区域的点数组
+                var pointArray = [];
+
+                /*画遮蔽层的相关方法
+                *思路: 首先在中国地图最外画一圈，圈住理论上所有的中国领土，然后再将每个闭合区域合并进来，并全部连到西北角。
+                *      这样就做出了一个经过多次西北角的闭合多边形*/
+                // 定义中国东南西北端点，作为第一层
+                var pNW = { lat: 59.0, lng: 73.0 }
+                var pNE = { lat: 59.0, lng: 136.0 }
+                var pSE = { lat: 3.0, lng: 136.0 }
+                var pSW = { lat: 3.0, lng: 73.0 }
+                // 向数组中添加一次闭合多边形，并将西北角再加一次作为之后画闭合区域的起点
+                var pArray = [];
+                pArray.push(pNW);
+                pArray.push(pSW);
+                pArray.push(pSE);
+                pArray.push(pNE);
+                pArray.push(pNW);
+                // 循环添加各闭合区域
+                for (var i = 0; i < blist.length; i++) {
+                    // 添加显示用标签层
+                    var label = new BMap.Label(blist[i].name, { offset: new BMap.Size(20, -10) });
+                    label.hide();
+                    _this.mountBaiduMap.addOverlay(label);
+
+                    // 添加多边形层并显示
+                    var ply = new BMap.Polygon(blist[i].points, { strokeWeight: 5, strokeColor: "#FF0000", fillOpacity: 0.01, fillColor: " #FFFFFF" }); // 建立多边形覆盖物
+                    ply.name = blist[i].name;
+                    ply.label = label;
+                    _this.mountBaiduMap.addOverlay(ply);
+
+                    // 将点增加到视野范围内
+                    var path = ply.getPath();
+                    pointArray = pointArray.concat(path);
+                    // 将闭合区域加到遮蔽层上，每次添加完后要再加一次西北角作为下次添加的起点和最后一次的终点
+                    pArray = pArray.concat(path);
+                    pArray.push(pArray[0]);
+                }
+
+                // 添加遮蔽层
+                var plyall = new BMap.Polygon(pArray, { strokeOpacity: 0.0000001, strokeColor: "#000000", strokeWeight: 0.00001, fillColor: "#000000", fillOpacity: 0.4 }); //建立多边形覆盖物
+                _this.mountBaiduMap.addOverlay(plyall);
+            }
+            
         },
 
         /**
@@ -455,47 +527,52 @@ export default {
             /**
              * 获取网点服务动态数据
              */
-            getDotService()
-            .then(response => {
-                let value = response.data;
+            let ajaxgetDotService = () => {
+                getDotService()
+                .then(response => {
+                    let value = response.data;
 
-                if (value.Code === 200 && !value.Msg) {
-                    console.log('获取网点服务动态数据', value);
-                    _this.dotServiceList = value.Data.details.map(val => ({
-                        timestamp: new Date(val.whattime).getTime(),
-                        lng: val.lng,
-                        lat: val.lat,
-                    }));
+                    if (value.Code === 200 && !value.Msg) {
+                        console.log('获取网点服务动态数据', value);
+                        _this.dotServiceList = value.Data.details.map(val => ({
+                            timestamp: new Date(val.whattime).getTime(),
+                            lng: val.lng,
+                            lat: val.lat,
+                        }));
 
-                    /**
-                     * 处理网点数据
-                     */
-                    _this.serviceData = value.Data;
-                    if (_this.serviceData.today.length === 0) {
-                        _this.serviceData.today = [
-                            { type: 1, len: 0 },
-                            { type: 2, len: 0 },
-                            { type: 3, len: 0 },
-                            { type: 4, len: 0 },
-                        ];
+                        /**
+                         * 处理网点数据
+                         */
+                        _this.serviceData = value.Data;
+                        if (_this.serviceData.today.length === 0) {
+                            _this.serviceData.today = [
+                                { type: 1, len: 0 },
+                                { type: 2, len: 0 },
+                                { type: 3, len: 0 },
+                                { type: 4, len: 0 },
+                            ];
+                        }
+
+                        serviceListHandle(); // 处理网点服务动态数据的方法
+
+                        // 10分钟执行一次
+                        setTimeout(() => {
+                            ajaxgetDotService();
+                        }, 1000 * 60 * 10);
+
+                    } else {
+                        console.error(value);
+                        alert(`获取网点服务动态数据失败, 原因: ${value.Msg}`);
                     }
 
-                    serviceListHandle(); // 处理网点服务动态数据的方法
+                }).catch(error => {
+                    console.error(error);
+                    alert(`获取网点服务动态数据失败, 原因: ${error.message}`);
+                });
 
-                    // 10分钟执行一次
-                    setTimeout(() => {
-                        getDotService();
-                    }, 1000 * 60 * 10);
-
-                } else {
-                    console.error(value);
-                    alert(`获取网点服务动态数据失败, 原因: ${value.Msg}`);
-                }
-
-            }).catch(error => {
-                console.error(error);
-                alert(`获取网点服务动态数据失败, 原因: ${error.message}`);
-            });
+            }
+            
+            ajaxgetDotService();
         },
 
         /**
@@ -579,16 +656,17 @@ export default {
                     var allOverlay = _this.mountBaiduMap.getOverlays();
 
                     allOverlay.map(val => {
+                        console.log(val)
                         /**
                          * 判断是否热力图
                          */
-                        if (!val.heatmap) {
-                            /**
-                             * 清除所有除热力图的遮罩物
-                             * 也就是所有动画标注
-                             */
-                            _this.mountBaiduMap.removeOverlay(val);
-                        }
+                        // if (!val.heatmap) {
+                        //     /**
+                        //      * 清除所有除热力图的遮罩物
+                        //      * 也就是所有动画标注
+                        //      */
+                        //     _this.mountBaiduMap.removeOverlay(val);
+                        // }
                     });
                 }
 
@@ -605,6 +683,16 @@ export default {
 @black2: #606266;
 @black3: #909399;
 @black4: #C0C4CC;
+.slide-fade-enter-active {
+  transition: all 1s ease;
+}
+.slide-fade-leave-active {
+  transition: all 1s cubic-bezier(1.0, 0.5, 0.8, 1.0);
+}
+.slide-fade-enter, .slide-fade-leave-to
+/* .slide-fade-leave-active for below version 2.1.8 */ {
+  transform: translateY(-20px);
+}
 
 .home {
     position: relative;
@@ -648,6 +736,10 @@ export default {
             // position: absolute;
             // right: 30px;
             // top: 2px;
+
+            .el-dropdown {
+                color: #fff;
+            }
         }
     }
     #mainBox {
