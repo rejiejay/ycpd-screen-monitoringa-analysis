@@ -61,7 +61,6 @@ export default {
 
         this.initMarkerHeatmap(); // 初始化热力图标记点
 
-        
         this.initDotService(); // 初始化网点服务动态数据
     },
 
