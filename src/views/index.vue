@@ -127,6 +127,7 @@
 <script>
 // 资源类
 import opacity from '@/assets/opacity.svg';
+import radialGradient from '@/assets/radialGradient.svg';
 // 工具类
 import TimeConver from '@/utils/TimeConver';
 // 请求类
@@ -236,15 +237,23 @@ export default {
             
             svg: {
                 opacity: opacity,
+                radialGradient: radialGradient,
             },
 
             mountBaiduMap: new BMap.Map('BaiduMap'),
             /**
-             * 地图样式 分为 服务动态图 网点地图
+             * 地图样式
+             * @prop {string} serviceDynamic 服务动态图
+             * @prop {string} siteMap 网点地图
              */
             mapStyle: 'serviceDynamic',
             /**
-             * 服务类型有 全部
+             * 服务类型
+             * @prop {string} all 全部
+             * @prop {string} baoyang 保养
+             * @prop {string} xiche 洗车
+             * @prop {string} jiayou 加油
+             * @prop {string} tingche 停车
              */
             serverType: 'all',
 
@@ -256,7 +265,27 @@ export default {
             /**
              * 所有网点
              */
-            heatmapList: [
+            dotData: [
+                // {
+                //     address: "广东省广州市花都区狮岭大道东7号之20典典养车汇航店",
+                //     area: "广东广州",
+                //     channel: "ycpd",
+                //     contactphone: "13533888189",
+                //     dotid: 180711010001883650,
+                //     dotname: "典典养车汇航店",
+                //     is_baoyang: 1,
+                //     is_jiayou: 0,
+                //     is_tingche: 0,
+                //     is_xiche: 1,
+                //     lat: 23.44978,
+                //     lng: 113.19573,
+                //     status: 1,
+                // }
+            ],
+            /**
+             * 热力图 以及网点图
+             */
+            dotHeatMapList: [
                 // {
                 //     lng: 114.132955,
                 //     lat: 22.667178,
@@ -288,10 +317,32 @@ export default {
         } 
     },
 
+    watch: {
+        /**
+         * 地图样式
+         * @prop {string} serviceDynamic 服务动态图
+         * @prop {string} siteMap 网点地图
+         */
+        mapStyle: function mapStyle(newMapStyle) {
+            this.initMarkerMap();
+        },
+
+        /**
+         * 服务类型
+         * @prop {string} all 全部
+         * @prop {string} baoyang 保养
+         * @prop {string} xiche 洗车
+         * @prop {string} jiayou 加油
+         * @prop {string} tingche 停车
+         */
+        serverType: function serverType(newServerType) {
+        },
+    },
+
     mounted: function mounted() {
         this.initBaiduMap(); // 初始化百度地图
 
-        this.initMarkerHeatmap(); // 初始化热力图标记点
+        this.ajaxsGetDotData(); // 获取网点数据
 
         this.initDotService(); // 初始化网点服务动态数据
     },
@@ -305,12 +356,10 @@ export default {
             this.mountBaiduMap.centerAndZoom(new BMap.Point(114.059560, 22.542860), 11); // 初始化地图，设置中心点坐标(深圳福田) 和地图级别  
             this.mountBaiduMap.enableScrollWheelZoom(true); //开启鼠标滚轮缩放
             
-			this.mountBaiduMap.setMapStyle({ 
+            this.mountBaiduMap.setMapStyle({ 
                 features: ["road", "water", "land"], // point（兴趣点）、road（道路）、water（河流）、land（陆地）、building（建筑物）
                 style : "dark",  //设置地图风格为高端黑
             });
-
-            this.renderBoundary();
         },
 
         /**
@@ -348,6 +397,7 @@ export default {
 
             /**
              * 下面 渲染区域
+             * 参考 https://my.oschina.net/u/3227847/blog/828908
              */
             var blist = [];
             var bdary = new BMap.Boundary();
@@ -411,21 +461,10 @@ export default {
         },
 
         /**
-         * 初始化热力图标记点 
+         * 获取所有网点数据
          */
-        initMarkerHeatmap: function initMarkerHeatmap() {
+        ajaxsGetDotData: function ajaxsGetDotData() {
             const _this = this;
-
-            /**
-             * 使用 Heatmap 热力图插件
-             * 渲染热力图标记点
-             */
-            function renderMarkerHeatmap() {
-                let heatmapOverlay = new BMapLib.HeatmapOverlay({ "radius": 20 });
-                _this.mountBaiduMap.addOverlay(heatmapOverlay);
-                heatmapOverlay.setDataSet({data: _this.heatmapList, max: 100});
-                heatmapOverlay.show();
-            }
 
             /**
              * 请求获取所有网点数据
@@ -435,11 +474,7 @@ export default {
                 let value = response.data;
 
                 if (value.Code === 200 && !value.Msg) {
-                    _this.heatmapList = value.Data.List.map(val => ({
-                        lng: val.lng,
-                        lat: val.lat,
-                        count: 100,
-                    }));
+                    _this.dotData = value.Data.List;
 
                     _this.heatmapFrom = {
                         all: value.Data.all,
@@ -448,7 +483,7 @@ export default {
                         tingche: value.Data.tingche,
                         xiche: value.Data.xiche,
                     }
-                    renderMarkerHeatmap(); // 渲染热力图标记点
+                    _this.initMarkerMap(); // 初始化地图标记点
 
                 } else {
                     console.error(value);
@@ -459,6 +494,59 @@ export default {
                 console.error(error);
                 alert(`请求获取所有网点数据失败, 原因: ${error.message}`);
             });
+        },
+
+        /**
+         * 初始化地图标记点 
+         */
+        initMarkerMap: function initMarkerMap() {
+            const _this = this;
+            this.mountBaiduMap.clearOverlays(); // 先清空所有的热力点
+            this.renderBoundary(); // 渲染省份以及定位
+
+            /**
+             * 使用 Heatmap 热力图插件
+             * 渲染热力图标记点
+             */
+            function renderMarkerHeatmap() {
+                let heatmapOverlay = new BMapLib.HeatmapOverlay({ "radius": 20 });
+                _this.mountBaiduMap.addOverlay(heatmapOverlay);
+                heatmapOverlay.setDataSet({data: _this.dotHeatMapList, max: 100});
+                heatmapOverlay.show();
+            }
+
+            /**
+             * 网点地图
+             */
+            function renderMarkerDotmap() {
+                for (let i = 0; i < _this.dotHeatMapList.length; i++) {
+                
+                    if (_this.dotHeatMapList[i].lng && _this.dotHeatMapList[i].lat) {
+                        let myPoint = new BMap.Point(_this.dotHeatMapList[i].lng, _this.dotHeatMapList[i].lat); // 当前位置点
+                        let myIcon = new BMap.Icon( _this.svg.radialGradient, new BMap.Size(20, 20)); // 图标
+                        let myMarker = new BMap.Marker(myPoint, { icon: myIcon }); // 标记
+                        myMarker.class = 'dotHeatMap';
+                        _this.mountBaiduMap.addOverlay(myMarker);
+                    }
+                }
+            }
+
+            this.dotHeatMapList = this.dotData.map(val => ({
+                lng: val.lng,
+                lat: val.lat,
+                count: 60,
+            }));
+
+            /**
+             * 判断是否渲染热力图
+             */
+            if (this.mapStyle === 'serviceDynamic') {
+
+                renderMarkerHeatmap(); // 渲染热力图标记点
+            } else {
+
+                renderMarkerDotmap(); // 渲染网点地图
+            }
         },
 
         /**
@@ -523,7 +611,8 @@ export default {
             function addComplexMarker(_lon, _lat) {  
                 var point = new BMap.Point(_lon, _lat);  
                 let myIcon = new BMap.Icon(_this.svg.opacity, new BMap.Size(1, 1));
-                var marker = new BMap.Marker(point, { icon: myIcon }); // 创建标注      
+                var marker = new BMap.Marker(point, { icon: myIcon }); // 创建标注
+                marker.class = 'district';  
                 var plex = new ComplexCustomOverlay(point, marker); // 创建标注      
     
                 return plex;
