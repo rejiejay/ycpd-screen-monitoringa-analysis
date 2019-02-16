@@ -61,11 +61,11 @@
                                 <td>加油</td>
                             </tr>
                             <tr>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
-                                <td></td>
+                                <td>{{heatmapFrom.all}}</td>
+                                <td>{{heatmapFrom.xiche}}</td>
+                                <td>{{heatmapFrom.tingche}}</td>
+                                <td>{{heatmapFrom.baoyang}}</td>
+                                <td>{{heatmapFrom.jiayou}}</td>
                             </tr>
                         </table>
                     </div>
@@ -236,6 +236,17 @@ export default {
             ],
 
             /**
+             * 网点表单
+             */
+            heatmapFrom: {
+                all: 0,
+                baoyang: 0,
+                jiayou: 0,
+                tingche: 0,
+                xiche: 0,
+            },
+
+            /**
              * 网点服务动态数据
              */
             dotServiceList: [
@@ -303,6 +314,14 @@ export default {
                         lat: val.lat,
                         count: 100,
                     }));
+
+                    _this.heatmapFrom = {
+                        all: value.Data.all,
+                        baoyang: value.Data.baoyang,
+                        jiayou: value.Data.jiayou,
+                        tingche: value.Data.tingche,
+                        xiche: value.Data.xiche,
+                    }
                     renderMarkerHeatmap(); // 渲染热力图标记点
 
                 } else {
@@ -342,8 +361,9 @@ export default {
                 _this.dotServiceList.map(val => {
                     /**
                      * 判断 网点服务的时间 是否在当前的时间
+                     * 网点服务的时间 大于当前时间 小于下次的时间
                      */
-                    if (nowTimestamp < val.timestamp && nowTimestamp > val.timestamp ) {
+                    if (val.timestamp > nowTimestamp && val.timestamp < nextTimestamp ) {
                         // 如果是在当前的时间, 则将提示动画渲染到地图上
                         _this.renderMarkerAnimation(val.lng, val.lat);
                     }
@@ -372,20 +392,36 @@ export default {
                             _this.detailsList.splice(5, 1);
                         }
 
-                        if(data.details[i].type === 1) {
+                        if (data.details[i].type === 1) {
                             data.today_all++
                             data.near_all++
                             data.today[0].len++
                             data.near[0].len++
-                            console.log('洗车')
+                            // console.log('洗车')
                         }
 
-                        if(data.details[i].type === 2){
+                        if (data.details[i].type === 2){
                             data.today_all++
                             data.near_all++
                             data.today[1].len++
                             data.near[1].len++
-                            console.log('加油');
+                            // console.log('加油');
+                        }
+
+                        if (data.details[i].type === 3){
+                            data.today_all++
+                            data.near_all++
+                            data.today[2].len++
+                            data.near[2].len++
+                            // console.log('保养');
+                        }
+
+                        if (data.details[i].type === 4){
+                            data.today_all++
+                            data.near_all++
+                            data.today[3].len++
+                            data.near[3].len++
+                            // console.log('投诉');
                         }
                     }
                 }
@@ -445,6 +481,11 @@ export default {
                     }
 
                     serviceListHandle(); // 处理网点服务动态数据的方法
+
+                    // 10分钟执行一次
+                    setTimeout(() => {
+                        getDotService();
+                    }, 1000 * 60 * 10);
 
                 } else {
                     console.error(value);
@@ -552,7 +593,6 @@ export default {
                 }
 
             }, 3000);
-
         },
 
     }
@@ -560,7 +600,7 @@ export default {
 
 </script>
 
-<style scoped lang="less">
+<style lang="less">
 @black1: #303133;
 @black2: #606266;
 @black3: #909399;
@@ -704,6 +744,24 @@ export default {
                 }
             }
         }
+    }
+}
+
+// 地图闪烁动画
+.css_animation {    
+    height: 50px;    
+    width: 50px;    
+    border-radius: 25px;    
+    background: rgba(250, 0, 0, 0.9);    
+    transform: scale(0);    
+    animation: my_css_animation 3s;    
+    animation-iteration-count: 1;
+}    
+
+@keyframes my_css_animation {    
+    to {
+        transform: scale(2);
+        background: rgba(0, 0, 0, 0);    
     }
 }
 
