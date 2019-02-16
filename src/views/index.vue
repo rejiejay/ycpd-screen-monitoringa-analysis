@@ -292,6 +292,7 @@ export default {
          */        
         handleCity: function handleCity(districtName) {
             this.districtName = districtName;
+            this.clearAllOverlay(true);
             this.renderBoundary(true);
         },
 
@@ -379,10 +380,6 @@ export default {
                     pArray = pArray.concat(path);
                     pArray.push(pArray[0]);
                 }
-
-                // 添加遮蔽层
-                var plyall = new BMap.Polygon(pArray, { strokeOpacity: 0.0000001, strokeColor: "#000000", strokeWeight: 0.00001, fillColor: "#000000", fillOpacity: 0.4 }); //建立多边形覆盖物
-                _this.mountBaiduMap.addOverlay(plyall);
             }
             
         },
@@ -512,7 +509,6 @@ export default {
             function renderMarkerAnimation(longitude, latitude) {
                 _this.mrkerAnimationingCount++; // 每执行一次 正在执行标注的动画的数量 加一
                 
-
                 let myAddMarker = addComplexMarker(longitude, latitude);  
                 _this.mountBaiduMap.addOverlay(myAddMarker);  
 
@@ -530,7 +526,6 @@ export default {
                     if (_this.mrkerAnimationingCount <= 0) {
                         // 所有动画执行完毕的情况下 清空动画标注
                         _this.clearAllOverlay();
-                        _this.renderBoundary(); // 清空过后要记得渲染省份
                     }
 
                 }, 3000);
@@ -697,22 +692,43 @@ export default {
 
         /**
          * 清空 除热力图外 所有标注
+         * @param {boolen} isClearBoundary 是否清除省份的界限
          */
-        clearAllOverlay: function clearAllOverlay() {
+        clearAllOverlay: function clearAllOverlay(isClearBoundary) {
             const _this = this;
+            let districtName = this.districtName;
 
             var allOverlay = this.mountBaiduMap.getOverlays();
 
             allOverlay.map(val => {
+
                 /**
-                 * 判断是否热力图
+                 * 先判断是否清除 省份的界限
                  */
-                if (!val.heatmap) {
+                if (isClearBoundary) {
                     /**
-                     * 清除所有除热力图的遮罩物
-                     * 也就是所有动画标注
+                     * 如果清除的情况下
+                     * 判断是否热力图
                      */
-                    _this.mountBaiduMap.removeOverlay(val);
+                    if (!val.heatmap) {
+                        /**
+                         * 清除所有除热力图的遮罩物
+                         * 也就是所有动画标注
+                         */
+                        _this.mountBaiduMap.removeOverlay(val);
+                    }
+
+                } else {
+                    // 不清除省份
+                    /**
+                     * 先判断是否省份
+                     */
+                    if (val.content !== districtName && val.name !== districtName) {
+                        // 不是省份的情况下，再判断是否热力图
+                        if (!val.heatmap) {
+                            _this.mountBaiduMap.removeOverlay(val);
+                        }
+                    }
                 }
             });
         },
