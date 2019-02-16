@@ -17,5 +17,9 @@ npm run build
 
 ```
 
+## 例子
+
+![example](https://raw.githubusercontent.com/rejiejay/ycpd-screen-monitoringa-analysis/master/static/example.jpg)
+
 ## License
 MIT

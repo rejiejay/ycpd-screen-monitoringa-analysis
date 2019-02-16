@@ -336,6 +336,7 @@ export default {
          * @prop {string} tingche 停车
          */
         serverType: function serverType(newServerType) {
+            this.initMarkerMap();
         },
     },
 
@@ -367,7 +368,7 @@ export default {
          */        
         handleCity: function handleCity(districtName) {
             this.districtName = districtName;
-            this.clearAllOverlay(true);
+            this.initMarkerMap();
             this.renderBoundary(true);
         },
 
@@ -531,11 +532,28 @@ export default {
                 }
             }
 
-            this.dotHeatMapList = this.dotData.map(val => ({
-                lng: val.lng,
-                lat: val.lat,
-                count: 60,
-            }));
+            let myDotHeatMapList = [];
+
+            this.dotData.map(val => {
+                let myDotItem = {
+                    lng: val.lng,
+                    lat: val.lat,
+                    count: 60,
+                }
+                if (_this.serverType === 'all') {
+                    myDotHeatMapList.push(myDotItem);
+                } else if (_this.serverType === 'baoyang' && val.is_baoyang > 0) {
+                    myDotHeatMapList.push(myDotItem);
+                } else if (_this.serverType === 'xiche' && val.is_xiche > 0) {
+                    myDotHeatMapList.push(myDotItem);
+                } else if (_this.serverType === 'jiayou' && val.is_jiayou > 0) {
+                    myDotHeatMapList.push(myDotItem);
+                } else if (_this.serverType === 'tingche' && val.is_tingche > 0) {
+                    myDotHeatMapList.push(myDotItem);
+                }
+            });
+
+            this.dotHeatMapList = myDotHeatMapList;
 
             /**
              * 判断是否渲染热力图
@@ -807,43 +825,44 @@ export default {
 
         /**
          * 清空 除热力图外 所有标注
-         * @param {boolen} isClearBoundary 是否清除省份的界限
          */
-        clearAllOverlay: function clearAllOverlay(isClearBoundary) {
+        clearAllOverlay: function clearAllOverlay() {
             const _this = this;
             let districtName = this.districtName;
 
             var allOverlay = this.mountBaiduMap.getOverlays();
 
             allOverlay.map(val => {
+                let isRemove = true; // 是否删除此项
 
                 /**
-                 * 先判断是否清除 省份的界限
+                 * 判断是否网点图
                  */
-                if (isClearBoundary) {
-                    /**
-                     * 如果清除的情况下
-                     * 判断是否热力图
-                     */
-                    if (!val.heatmap) {
-                        /**
-                         * 清除所有除热力图的遮罩物
-                         * 也就是所有动画标注
-                         */
-                        _this.mountBaiduMap.removeOverlay(val);
-                    }
+                if (val.class && val.class === 'dotHeatMap') {
+                    // 是网点图的情况下, 不删除
+                    return isRemove = false;
+                }
+                
+                /**
+                 * 判断是否热力图
+                 */
+                if (val.heatmap) {
+                    // 是热力图的情况下, 不删除
+                    return isRemove = false;
+                }
 
+                /**
+                 * 既不是 网点图 也不是 热力图的情况下
+                 * 判断是否清除 省份的界限
+                 */
+                if (val.content !== districtName && val.name !== districtName) {
+                    isRemove = true;
                 } else {
-                    // 不清除省份
-                    /**
-                     * 先判断是否省份
-                     */
-                    if (val.content !== districtName && val.name !== districtName) {
-                        // 不是省份的情况下，再判断是否热力图
-                        if (!val.heatmap) {
-                            _this.mountBaiduMap.removeOverlay(val);
-                        }
-                    }
+                    isRemove = false;
+                }
+
+                if (isRemove) {
+                    _this.mountBaiduMap.removeOverlay(val);
                 }
             });
         },
