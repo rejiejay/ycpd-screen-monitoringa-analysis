@@ -138,7 +138,7 @@ export default {
                     //     lat: 22.850989
                     // },
                     {
-                        whattime: "2019-02-15T17:36:40",
+                        whattime: "2019-02-16T10:10:40",
                         area: "佛山市",
                         carno: "粤XVM338",
                         type: 2,
@@ -148,7 +148,7 @@ export default {
                         lat: 22.850989
                     },
                     {
-                        whattime: "2019-02-15T17:36:05",
+                        whattime: "2019-02-16T10:10:05",
                         area: "佛山市",
                         carno: "粤XVM338",
                         type: 2,
@@ -158,7 +158,7 @@ export default {
                         lat: 22.850989
                     },
                     {
-                        whattime: "2019-02-15T17:36:10",
+                        whattime: "2019-02-16T10:10:10",
                         area: "佛山市",
                         carno: "粤XVM338",
                         type: 2,
@@ -168,7 +168,7 @@ export default {
                         lat: 22.850989
                     },
                     {
-                        whattime: "2019-02-15T17:36:15",
+                        whattime: "2019-02-16T10:10:15",
                         area: "佛山市",
                         carno: "粤XVM338",
                         type: 2,
@@ -178,7 +178,7 @@ export default {
                         lat: 22.850989
                     },
                     {
-                        whattime: "2019-02-15T17:36:20",
+                        whattime: "2019-02-16T10:10:20",
                         area: "佛山市",
                         carno: "粤XVM338",
                         type: 2,
@@ -188,7 +188,7 @@ export default {
                         lat: 22.850989
                     },
                     {
-                        whattime: "2019-02-15T17:36:25",
+                        whattime: "2019-02-16T10:10:25",
                         area: "佛山市",
                         carno: "粤XVM338",
                         type: 2,
@@ -198,7 +198,7 @@ export default {
                         lat: 22.850989
                     },
                     {
-                        whattime: "2019-02-15T17:57:30",
+                        whattime: "2019-02-16T10:10:30",
                         area: "佛山市",
                         carno: "粤XVM338",
                         type: 2,
@@ -377,7 +377,7 @@ export default {
                             data.near_all++
                             data.today[0].len++
                             data.near[0].len++
-                            // console.log('洗车')
+                            console.log('洗车')
                         }
 
                         if(data.details[i].type === 2){
@@ -385,7 +385,7 @@ export default {
                             data.near_all++
                             data.today[1].len++
                             data.near[1].len++
-                            // console.log('加油');
+                            console.log('加油');
                         }
                     }
                 }
