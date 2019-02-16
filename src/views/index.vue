@@ -1,9 +1,10 @@
 <!-- 养车频道数据监控平台 -->
 <template>
-    <div class="home" :style="'height:'+clientHeight+'px'">
+    <div class="home" >
         <div id="header">
             <div class="title">
-                养车频道数据监控平台
+                <img src="../assets/logo.png" alt="">
+                <span>养车频道数据监控平台</span>
             </div>
             <div class="city">
                 <span>深圳市</span>
@@ -76,12 +77,12 @@
                         <li>网点</li>
                     </ul>
                     <ul class="content">
-                        <li>
-                            <span>11:11:12</span>
-                            <span>深圳市龙岗区</span>
-                            <span>粤B12345</span>
-                            <span>加油</span>
-                            <span>某某某某服务网点</span>
+                        <li class="animated bouncelnRight" v-for="(item,index) in detailsList" :key="index">
+                            <span>{{item.whattime.substr(11,20)}}</span>
+                            <span>{{item.area}}</span>
+                            <span>{{item.carno}}</span>
+                            <span>{{item.typedesc}}</span>
+                            <span>{{item.dotname}}</span>
                         </li>
                     </ul>
                 </div>
@@ -116,18 +117,18 @@ export default {
                    {type:4,len:50},
                 ],
                 details:[
+                    // {
+                    //     whattime: "2019-02-15T17:36:00",
+                    //     area: "佛山市",
+                    //     carno: "粤XVM338",
+                    //     type: 1,
+                    //     typedesc: "洗车",
+                    //     dotname: "佛山大良加油站漫途汽服店",
+                    //     lng: 113.249232,
+                    //     lat: 22.850989
+                    // },
                     {
-                        whattime: "2019-02-15T15:58:00.997",
-                        area: "佛山市",
-                        carno: "粤XVM338",
-                        type: 1,
-                        typedesc: "洗车",
-                        dotname: "佛山大良加油站漫途汽服店",
-                        lng: 113.249232,
-                        lat: 22.850989
-                    },
-                    {
-                        whattime: "2019-02-15T15:59:00.997",
+                        whattime: "2019-02-15T17:36:40",
                         area: "佛山市",
                         carno: "粤XVM338",
                         type: 2,
@@ -136,12 +137,71 @@ export default {
                         lng: 113.249232,
                         lat: 22.850989
                     },
+                    {
+                        whattime: "2019-02-15T17:36:05",
+                        area: "佛山市",
+                        carno: "粤XVM338",
+                        type: 2,
+                        typedesc: "加油",
+                        dotname: "佛山大良加油站漫途汽服店",
+                        lng: 113.249232,
+                        lat: 22.850989
+                    },
+                    {
+                        whattime: "2019-02-15T17:36:10",
+                        area: "佛山市",
+                        carno: "粤XVM338",
+                        type: 2,
+                        typedesc: "加油",
+                        dotname: "佛山大良加油站漫途汽服店",
+                        lng: 113.249232,
+                        lat: 22.850989
+                    },
+                    {
+                        whattime: "2019-02-15T17:36:15",
+                        area: "佛山市",
+                        carno: "粤XVM338",
+                        type: 2,
+                        typedesc: "加油",
+                        dotname: "佛山大良加油站漫途汽服店",
+                        lng: 113.249232,
+                        lat: 22.850989
+                    },
+                    {
+                        whattime: "2019-02-15T17:36:20",
+                        area: "佛山市",
+                        carno: "粤XVM338",
+                        type: 2,
+                        typedesc: "加油",
+                        dotname: "佛山大良加油站漫途汽服店",
+                        lng: 113.249232,
+                        lat: 22.850989
+                    },
+                    {
+                        whattime: "2019-02-15T17:36:25",
+                        area: "佛山市",
+                        carno: "粤XVM338",
+                        type: 2,
+                        typedesc: "加油",
+                        dotname: "佛山大良加油站漫途汽服店",
+                        lng: 113.249232,
+                        lat: 22.850989
+                    },
+                    {
+                        whattime: "2019-02-15T17:57:30",
+                        area: "佛山市",
+                        carno: "粤XVM338",
+                        type: 2,
+                        typedesc: "加油",
+                        dotname: "佛山大良加油站漫途汽服店",
+                        lng: 113.249232,
+                        lat: 22.850989
+                    },
+                    
                 ]
             },
-
-            todayTotal:'',  // 今日总条数
-            nearTotal:'',   // 最近总条数
-            timer:null
+            timer:null,
+            detailsList:[],
         } 
     },
     mounted: function mounted() { },
@@ -159,6 +219,10 @@ export default {
                 // 数据时间:1550215530997现在时间1550215582074
 
                 if(time==date){
+                    this.detailsList.unshift(data.details[i])
+                    if(this.detailsList.length>5){
+                        this.detailsList.splice(5,1)
+                    }
                     if(data.details[i].type===1){
                         data.today_all++
                         data.near_all++
@@ -198,7 +262,7 @@ export default {
     position: relative;
     font-size: 14px;
     width: 100%;
-    // min-height: 100%;
+    min-height: 100%;
     background-color: #0F1729;
     #header {
         height: 88px;
@@ -218,6 +282,11 @@ export default {
             display: flex;
             align-items: center;
             justify-content: center;
+            img {
+                height: 50px;
+                width: 50px;
+                margin-right: 20px;
+            }
         }
         .city {
             font-size: 14px;
@@ -235,7 +304,10 @@ export default {
     }
     #mainBox {
         padding-top: 20px;
+        box-sizing: border-box;
         font-size: 14px;
+        overflow: hidden;
+        padding-bottom: 35px;
         .monitoringData {
             width: 50%;
             float:right;
@@ -293,14 +365,14 @@ export default {
                     li {
                         // width: 100%;
                         display: flex;
-                        height: 40px;
+                        height: 36px;
                         border: 1px solid #29467c;
                         border-top: none;
                         span {
                             flex:1;
                             // display: block;
                             text-align: center;
-                            line-height: 40px;
+                            line-height: 36px;
                             border-right: 1px solid #29467c;
                         }
                         span:last-child {
