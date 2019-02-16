@@ -12,9 +12,9 @@
                         {{districtName}}<i class="el-icon-arrow-down el-icon--right"></i>
                     </span>
                     <el-dropdown-menu slot="dropdown">
-                        <el-dropdown-item>广东省</el-dropdown-item>
-                        <el-dropdown-item>深圳市</el-dropdown-item>
-                        <el-dropdown-item>广州市</el-dropdown-item>
+                        <el-dropdown-item command="广东省">广东省</el-dropdown-item>
+                        <el-dropdown-item command="深圳市">深圳市</el-dropdown-item>
+                        <el-dropdown-item command="广州市">广州市</el-dropdown-item>
                     </el-dropdown-menu>
                 </el-dropdown>
             </div>
@@ -214,7 +214,7 @@ export default {
             timer: null,
             detailsList: [],
 
-            districtName: '广东省', // 行政区域
+            districtName: '深圳市', // 行政区域
             
             svg: {
                 opacity: opacity,
@@ -278,7 +278,6 @@ export default {
             this.mountBaiduMap = new BMap.Map('BaiduMap', { enableMapClick: false }); // 创建地图实例，关闭底图可点功能
             this.mountBaiduMap.centerAndZoom(new BMap.Point(114.059560, 22.542860), 11); // 初始化地图，设置中心点坐标(深圳福田) 和地图级别  
             this.mountBaiduMap.enableScrollWheelZoom(true); //开启鼠标滚轮缩放
-            this.mountBaiduMap.addControl(new BMap.NavigationControl());
             
 			this.mountBaiduMap.setMapStyle({ 
                 features: ["road", "water", "land"], // point（兴趣点）、road（道路）、water（河流）、land（陆地）、building（建筑物）
@@ -292,6 +291,8 @@ export default {
          * 点击选择省份
          */        
         handleCity: function handleCity(districtName) {
+            this.districtName = districtName;
+            this.renderBoundary(true);
         },
 
         /**
@@ -681,27 +682,34 @@ export default {
                 // 判断是否所有 动画是否执行完毕
                 if (_this.mrkerAnimationingCount <= 0) {
                     // 所有动画执行完毕的情况下 清空动画标注
-                    var allOverlay = _this.mountBaiduMap.getOverlays();
-
-                    allOverlay.map(val => {
-                        console.log(val)
-                        /**
-                         * 判断是否热力图
-                         */
-                        // if (!val.heatmap) {
-                        //     /**
-                        //      * 清除所有除热力图的遮罩物
-                        //      * 也就是所有动画标注
-                        //      */
-                        //     _this.mountBaiduMap.removeOverlay(val);
-                        // }
-                    });
+                    _this.clearAllOverlay();
+                    _this.renderBoundary(); // 清空过后要记得渲染省份
                 }
 
             }, 3000);
         },
+    },
 
-    }
+    /**
+     * 清空 除热力图外 所有标注
+     */
+    clearAllOverlay: function clearAllOverlay() {
+        var allOverlay = _this.mountBaiduMap.getOverlays();
+
+        allOverlay.map(val => {
+            console.log(val)
+            /**
+             * 判断是否热力图
+             */
+            if (!val.heatmap) {
+                /**
+                 * 清除所有除热力图的遮罩物
+                 * 也就是所有动画标注
+                 */
+                _this.mountBaiduMap.removeOverlay(val);
+            }
+        });
+    },
 }
 
 </script>
