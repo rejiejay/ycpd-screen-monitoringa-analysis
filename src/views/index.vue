@@ -7,7 +7,7 @@
                 <span>养车频道数据监控平台</span>
             </div>
             <div class="city">
-                <el-dropdown trigger="click">
+                <el-dropdown trigger="click" @command="handleCity">
                     <span class="el-dropdown-link">
                         {{districtName}}<i class="el-icon-arrow-down el-icon--right"></i>
                     </span>
@@ -28,10 +28,10 @@
             <div class="monitoringData flex-rest">
                 <div class="monitoringData-container">
                     <div class="serviceData">
-                        <div style="font-size:16px">已完成服务</div>
+                        <div style="font-size:18px;color=#7C8BB3;font-weight:bold">已完成服务</div>
                         <div class="table">
                             <table width="100%" border="1" cellspacing="0" cellpadding="0">
-                                <tr>
+                                <tr style="backgroundColor:#121C32">
                                     <td></td>
                                     <td>类型</td>
                                     <td>洗车</td>
@@ -40,7 +40,7 @@
                                     <td>投诉</td>
                                 </tr>
                                 <tr>
-                                    <td>今日订单</td>
+                                    <td style="backgroundColor:#121C32">今日订单</td>
                                     <td style="color:#2D61B1">{{serviceData.today_all}}</td>
                                     <td style="color:#2D61B1" v-for="(item,index) in serviceData.today" :key="index">{{item.len}}</td>
                                     <!-- <td></td>
@@ -48,7 +48,7 @@
                                     <td></td> -->
                                 </tr>
                                 <tr>
-                                    <td>最近30天</td>
+                                    <td style="backgroundColor:#121C32">最近30天</td>
                                     <td style="color:#2D61B1">{{serviceData.near_all}}</td>
                                     <td style="color:#2D61B1" v-for="(item,index) in serviceData.near" :key="index">{{item.len}}</td>
                                     <!-- <td></td>
@@ -60,16 +60,16 @@
                     </div>
 
                     <div class="dot">
-                        <div style="marginTop:20px;fontSize:16px;marginBottom:10px">上线网点</div>
+                        <div style="marginTop:20px;fontSize:18px;marginBottom:10px;color=#7C8BB3;font-weight:bold">上线网点</div>
                         <table width="100%" border="1" cellspacing="0" cellpadding="0">
-                            <tr>
+                            <tr style="backgroundColor:#121C32">
                                 <td>全部</td>
                                 <td>洗车</td>
                                 <td>停车</td>
                                 <td>保养</td>
                                 <td>加油</td>
                             </tr>
-                            <tr>
+                            <tr style="color:#2D61B1">
                                 <td>{{heatmapFrom.all}}</td>
                                 <td>{{heatmapFrom.xiche}}</td>
                                 <td>{{heatmapFrom.tingche}}</td>
@@ -80,29 +80,25 @@
                     </div>
 
                     <div class="dynamic">
-                        <div style="marginTop:20px;fontSize:16px;marginBottom:10px">服务动态</div>
-                        <ul class="header">
+                        <div style="marginTop:20px;fontSize:18px;marginBottom:10px;color=#7C8BB3;font-weight:bold">服务动态</div>
+                        <ul style="backgroundColor:#121C32" class="header">
                             <li>时间</li>
                             <li>区域</li>
                             <li>车牌</li>
                             <li>类型</li>
                             <li>网点</li>
                         </ul>
-                    
-                            <ul class="content">
-                                <transition-group name="slide-fade" tag='span'> 
-                                    <li v-for="item in detailsList" :key="item.whattime">    
-                                            <span>{{item.whattime.substr(11,20)}}</span>
-                                            <span>{{item.area}}</span>
-                                            <span>{{item.carno}}</span>
-                                            <span>{{item.typedesc}}</span>
-                                            <span>{{item.dotname}}</span>  
-                                    
-                                            
-                                    </li>  
-                                </transition-group>
-                            </ul>
-                        
+                        <ul class="content">
+                            <transition-group name="slide-fade" tag='span'> 
+                                <li v-for="item in detailsList" :key="item.id">    
+                                    <span>{{item.whattime.substr(11,20)}}</span>
+                                    <span>{{item.area}}</span>
+                                    <span>{{item.carno}}</span>
+                                    <span>{{item.typedesc}}</span>
+                                    <span>{{item.dotname}}</span>       
+                                </li>  
+                            </transition-group>
+                        </ul>
                     </div>
                 </div>
             </div>
@@ -279,9 +275,7 @@ export default {
          * 初始化百度地图
          */
         initBaiduMap: function initBaiduMap() {
-            const _this = this;
             this.mountBaiduMap = new BMap.Map('BaiduMap', { enableMapClick: false }); // 创建地图实例，关闭底图可点功能
-            
             this.mountBaiduMap.centerAndZoom(new BMap.Point(114.059560, 22.542860), 11); // 初始化地图，设置中心点坐标(深圳福田) 和地图级别  
             this.mountBaiduMap.enableScrollWheelZoom(true); //开启鼠标滚轮缩放
             this.mountBaiduMap.addControl(new BMap.NavigationControl());
@@ -291,6 +285,37 @@ export default {
                 style : "dark",  //设置地图风格为高端黑
             });
 
+            this.renderBoundary();
+        },
+
+        /**
+         * 点击选择省份
+         */        
+        handleCity: function handleCity(districtName) {
+        },
+
+        /**
+         * 渲染省份以及定位
+         * @param {Bollen} 是否刷新中中心点
+         */
+        renderBoundary: function renderBoundary(isRefreshCenter) {
+            const _this = this;
+            let districtName = this.districtName;
+
+            /**
+             * 根据省份获取定位
+             */
+            var myGeo = new BMap.Geocoder();     
+            // 将地址解析结果显示在地图上，并调整地图视野    
+            myGeo.getPoint(districtName, function(point){      
+                if (point) {      
+                    _this.mountBaiduMap.centerAndZoom(point, 11);
+                }      
+            });
+
+            /**
+             * 下面 渲染区域
+             */
             var blist = [];
             var bdary = new BMap.Boundary();
             bdary.get(this.districtName, function (rs) {       //获取行政区域
@@ -458,7 +483,10 @@ export default {
                     // 数据时间:1550215530997现在时间1550215582074
 
                     if(time == date){
-                        _this.detailsList.unshift(data.details[i]);
+                        let newdetails = data.details[i];
+                        newdetails.id = Math.random();
+
+                        _this.detailsList.unshift(newdetails);
 
                         if (_this.detailsList.length > 5) {
                             _this.detailsList.splice(5, 1);
@@ -571,7 +599,7 @@ export default {
                 });
 
             }
-            
+
             ajaxgetDotService();
         },
 
@@ -689,9 +717,14 @@ export default {
 .slide-fade-leave-active {
   transition: all 1s cubic-bezier(1.0, 0.5, 0.8, 1.0);
 }
-.slide-fade-enter, .slide-fade-leave-to
+.slide-fade-enter 
 /* .slide-fade-leave-active for below version 2.1.8 */ {
   transform: translateY(-20px);
+}
+.slide-fade-leave-to {
+    opacity: 0;
+    transition: all 0s;
+    
 }
 
 .home {
@@ -725,10 +758,11 @@ export default {
             }
         }
         .city {
+            color:#9DA7C3;
             font-size: 14px;
             width:100px;
             height: 40px;
-            border: 1px solid #fff;
+            border: 1px solid #7C8BB3;
             border-radius: 20px;
             display: flex;
             justify-content: center;
@@ -760,7 +794,7 @@ export default {
 
         .monitoringData {
             // background-color: #ccc;
-            color: #c1c7d3;
+            color: #9DA7C3;
             padding-bottom: 35px;
 
             .monitoringData-container {
@@ -818,7 +852,7 @@ export default {
                     li {
                         // width: 100%;
                         display: flex;
-                        height: 36px;
+                        min-height: 36px;
                         border: 1px solid #29467c;
                         border-top: none;
                         span {
