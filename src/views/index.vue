@@ -21,8 +21,26 @@
         </div>
         <div class="flex-start" id="mainBox">
             <div class="map flex-rest" :style="`height: ${clientHeight - 88 - 35}px;`">
-                <div class="map-container"><div id="BaiduMap"></div></div>
-                
+                <div class="map-container">
+                    <div id="BaiduMap"></div>
+
+                    <div class="map-style-select">
+                        <el-radio-group v-model="mapStyle" size="medium">
+                            <el-radio-button label="serviceDynamic">服务动态</el-radio-button>
+                            <el-radio-button label="siteMap">网点地图</el-radio-button>
+                        </el-radio-group>
+                    </div>
+                    
+                    <div class="map-server-type">
+                        <el-radio-group v-model="serverType" size="medium">
+                            <el-radio-button label="all">全部</el-radio-button>
+                            <el-radio-button label="baoyang">保养</el-radio-button>
+                            <el-radio-button label="xiche">洗车</el-radio-button>
+                            <el-radio-button label="jiayou">加油</el-radio-button>
+                            <el-radio-button label="tingche">停车</el-radio-button>
+                        </el-radio-group>
+                    </div>
+                </div>
             </div>
 
             <div class="monitoringData flex-rest">
@@ -221,6 +239,14 @@ export default {
             },
 
             mountBaiduMap: new BMap.Map('BaiduMap'),
+            /**
+             * 地图样式 分为 服务动态图 网点地图
+             */
+            mapStyle: 'serviceDynamic',
+            /**
+             * 服务类型有 全部
+             */
+            serverType: 'all',
 
             /**
              * 正在执行标注的动画的数量
@@ -815,11 +841,26 @@ export default {
 
         // 百度地图
         .map .map-container {
+            position: relative;
             padding: 0px 15px 15px 15px;
             height: 100%;
 
             #BaiduMap {
                 height: 100%;
+            }
+
+            .map-style-select {
+                position: absolute;
+                left: 25px;
+                top: 10px;
+                z-index: 1;
+            }
+
+            .map-server-type {
+                position: absolute;
+                right: 25px;
+                top: 10px;
+                z-index: 1;
             }
         }
 
