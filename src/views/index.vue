@@ -6,7 +6,7 @@
                 <img src="../assets/logo.png" alt="">
                 <span>养车频道数据监控平台</span>
             </div>
-            <div class="city">
+            <div class="city" v-if="isHideCtrl === false">
                 <el-dropdown trigger="click" @command="handleCity">
                     <span class="el-dropdown-link">
                         {{districtName}}<i class="el-icon-arrow-down el-icon--right"></i>
@@ -22,16 +22,16 @@
         <div class="flex-start" id="mainBox">
             <div class="map flex-rest" :style="`height: ${clientHeight - 88 - 35}px;`">
                 <div class="map-container">
-                    <div id="BaiduMap"></div>
+                    <div id="BaiduMap" :style="`height: ${clientHeight - 73}px;`"></div>
 
-                    <div class="map-style-select">
+                    <div class="map-style-select" v-if="isHideCtrl === false">
                         <el-radio-group v-model="mapStyle" size="medium">
-                            <el-radio-button label="serviceDynamic">服务动态</el-radio-button>
                             <el-radio-button label="siteMap">网点地图</el-radio-button>
+                            <el-radio-button label="serviceDynamic">服务动态</el-radio-button>
                         </el-radio-group>
                     </div>
                     
-                    <div class="map-server-type">
+                    <div class="map-server-type" v-if="isHideCtrl === false">
                         <el-radio-group v-model="serverType" size="medium">
                             <el-radio-button label="all">全部</el-radio-button>
                             <el-radio-button label="baoyang">保养</el-radio-button>
@@ -43,7 +43,7 @@
                 </div>
             </div>
 
-            <div class="monitoringData flex-rest">
+            <div class="monitoringData">
                 <div class="monitoringData-container">
                     <div class="serviceData">
                         <div style="font-size:18px;color=#7C8BB3;font-weight:bold">已完成服务</div>
@@ -130,6 +130,7 @@ import opacity from '@/assets/opacity.svg';
 import radialGradient from '@/assets/radialGradient.svg';
 // 工具类
 import TimeConver from '@/utils/TimeConver';
+import loadPageVar from '@/utils/loadPageVar';
 // 请求类
 import { getDotData, getDotService } from '@/api/index';
 
@@ -240,13 +241,15 @@ export default {
                 radialGradient: radialGradient,
             },
 
+            isHideCtrl: false, // 是否隐藏控制栏
+
             mountBaiduMap: new BMap.Map('BaiduMap'),
             /**
              * 地图样式
              * @prop {string} serviceDynamic 服务动态图
              * @prop {string} siteMap 网点地图
              */
-            mapStyle: 'serviceDynamic',
+            mapStyle: 'siteMap',
             /**
              * 服务类型
              * @prop {string} all 全部
@@ -341,6 +344,8 @@ export default {
     },
 
     mounted: function mounted() {
+        this.initPageDate(); // 初始化页面数据
+
         this.initBaiduMap(); // 初始化百度地图
 
         this.ajaxsGetDotData(); // 获取网点数据
@@ -349,6 +354,21 @@ export default {
     },
 
     methods: {
+        /**
+         * 初始化页面数据
+         */
+        initPageDate: function initPageDate() {
+            let urlhideCtrl = loadPageVar('hideCtrl');
+            let routehideCtrl = this.$route.query.hideCtrl;
+
+            /**
+             * 判断是否隐藏页面控制条
+             */
+            if ((urlhideCtrl && urlhideCtrl === '1') || (routehideCtrl && routehideCtrl === '1')) {
+                this.isHideCtrl = true;
+            }
+        },
+
         /**
          * 初始化百度地图
          */
@@ -639,7 +659,7 @@ export default {
                 
                     if (_this.dotHeatMapList[i].lng && _this.dotHeatMapList[i].lat) {
                         let myPoint = new BMap.Point(_this.dotHeatMapList[i].lng, _this.dotHeatMapList[i].lat); // 当前位置点
-                        let myIcon = new BMap.Icon( _this.svg.radialGradient, new BMap.Size(20, 20)); // 图标
+                        let myIcon = new BMap.Icon( _this.svg.radialGradient, new BMap.Size(10, 10)); // 图标
                         let myMarker = new BMap.Marker(myPoint, { icon: myIcon }); // 标记
                         myMarker.class = 'dotHeatMap';
                         _this.mountBaiduMap.addOverlay(myMarker);
@@ -776,11 +796,11 @@ export default {
                         _this.clearAllOverlay();
                     }
 
-                }, 3000);
+                }, 6000);
             }
 
             /**
-             * 出身新增提示的动画
+             * 初始化新增提示的动画
              */
             let initMarkerAnimation = () => {
                 // 当前时间戳
@@ -880,6 +900,28 @@ export default {
             }
 
             /**
+             * 每30秒 地图自动切换 广东省和 深圳市 的显示区域方法
+             */
+            let ThirtySecondsCountdown = 0;
+            function switchMapShow() {
+                ThirtySecondsCountdown++; // 每秒钟执行一次
+
+                /**
+                 * 判断是否执行30秒
+                 */
+                if (ThirtySecondsCountdown > 30) {
+                    ThirtySecondsCountdown = 0; // 清空
+                    if (_this.districtName === '深圳市') {
+                        _this.districtName = '广东省';
+                        _this.handleCity('广东省');
+                    } else if (_this.districtName === '广东省') {
+                        _this.districtName = '深圳市';
+                        _this.handleCity('深圳市');
+                    }
+                }
+            }
+
+            /**
              * 处理网点服务动态数据的方法
              */
             function serviceListHandle() {
@@ -895,6 +937,7 @@ export default {
 
                 initMarkerAnimation(); // 渲染 渲染新增提示的动画
                 initServiceData(); // 处理 serviceData 表单数据
+                switchMapShow(); // 每30秒 地图自动切换 广东省和 深圳市 的显示区域方法
 
                 // 一秒钟执行一次
                 setTimeout(() => {
@@ -1019,7 +1062,7 @@ export default {
 .slide-fade-leave-to {
     // opacity: 0;
     // transition: all 0s;
-    transition-duration:0s
+    transition-duration: 0s
     // transform: translateY(0px);
 }
 
@@ -1078,11 +1121,15 @@ export default {
         font-size: 14px;
         overflow: hidden;
 
-        // 百度地图
-        .map .map-container {
-            position: relative;
+        .map {
             padding: 0px 15px 15px 15px;
+        }
+
+        // 百度地图
+        .map-container {
+            position: relative;
             height: 100%;
+            overflow: hidden;
 
             #BaiduMap {
                 height: 100%;
@@ -1090,20 +1137,21 @@ export default {
 
             .map-style-select {
                 position: absolute;
-                left: 25px;
+                left: 15px;
                 top: 10px;
                 z-index: 1;
             }
 
             .map-server-type {
                 position: absolute;
-                right: 25px;
+                right: 15px;
                 top: 10px;
                 z-index: 1;
             }
         }
 
         .monitoringData {
+            width: 33.33%;
             // background-color: #ccc;
             color: #9DA7C3;
             padding-bottom: 35px;
@@ -1198,7 +1246,7 @@ export default {
     border-radius: 25px;    
     background: rgba(250, 0, 0, 0.9);    
     transform: scale(0);    
-    animation: my_css_animation 3s;    
+    animation: my_css_animation 6s;    
     animation-iteration-count: 1;
 }    
 

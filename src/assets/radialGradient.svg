@@ -1,10 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" version="1.1">
   <defs>
     <radialGradient id="grad1" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
-      <stop offset="0%" style="stop-color:rgba(91,166,252,1);stop-opacity:1" />
-      <stop offset="40%" style="stop-color:rgba(7,120,249,1);stop-opacity:1" />
-      <stop offset="100%" style="stop-color:rgba(7,120,249,0.3);stop-opacity:0" />
+      <stop offset="0%" style="stop-color:rgba(255,255,59,1);stop-opacity:1" />
+      <stop offset="100%" style="stop-color:rgba(255,255,59,0);stop-opacity:0" />
     </radialGradient>
   </defs>
-  <ellipse cx="10" cy="10" rx="10" ry="10" fill="url(#grad1)" />
+  <ellipse cx="5" cy="5" rx="5" ry="5" fill="url(#grad1)" />
 </svg>
