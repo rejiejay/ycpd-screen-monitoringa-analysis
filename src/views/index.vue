@@ -25,20 +25,20 @@
                     <div id="BaiduMap" :style="`height: ${clientHeight - 73}px;`"></div>
 
                     <div class="map-style-select" v-if="isHideCtrl === false">
-                        <el-radio-group v-model="mapStyle" size="medium">
-                            <el-radio-button label="siteMap">网点地图</el-radio-button>
-                            <el-radio-button label="serviceDynamic">服务动态</el-radio-button>
-                        </el-radio-group>
+                        <div class="map-select flex-start">
+                            <div class="map-select-item" :class="{'select-item-active': mapStyle === 'siteMap'}" @click="mapStyle = 'siteMap'">网点地图</div>
+                            <div class="map-select-item" :class="{'select-item-active': mapStyle === 'serviceDynamic'}" @click="mapStyle = 'serviceDynamic'">服务动态</div>
+                        </div>
                     </div>
                     
                     <div class="map-server-type" v-if="isHideCtrl === false">
-                        <el-radio-group v-model="serverType" size="medium">
-                            <el-radio-button label="all">全部</el-radio-button>
-                            <el-radio-button label="baoyang">保养</el-radio-button>
-                            <el-radio-button label="xiche">洗车</el-radio-button>
-                            <el-radio-button label="jiayou">加油</el-radio-button>
-                            <el-radio-button label="tingche">停车</el-radio-button>
-                        </el-radio-group>
+                        <div class="map-select flex-start">
+                            <div class="map-select-item" :class="{'select-item-active': serverType === 'all'}" @click="serverType = 'all'">全部</div>
+                            <div class="map-select-item" :class="{'select-item-active': serverType === 'baoyang'}" @click="serverType = 'baoyang'">保养</div>
+                            <div class="map-select-item" :class="{'select-item-active': serverType === 'xiche'}" @click="serverType = 'xiche'">洗车</div>
+                            <div class="map-select-item" :class="{'select-item-active': serverType === 'jiayou'}" @click="serverType = 'jiayou'">加油</div>
+                            <div class="map-select-item" :class="{'select-item-active': serverType === 'tingche'}" @click="serverType = 'tingche'">停车</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -64,6 +64,11 @@
                                     <!-- <td></td>
                                     <td></td>
                                     <td></td> -->
+                                </tr>
+                                <tr>
+                                    <td style="backgroundColor:#121C32">昨日订单</td>
+                                    <td style="color:#2D61B1">{{yesterdayData.all}}</td>
+                                    <td style="color:#2D61B1" v-for="(item,index) in yesterdayData.summery" :key="index">{{item.len}}</td>
                                 </tr>
                                 <tr>
                                     <td style="backgroundColor:#121C32">最近30天</td>
@@ -132,7 +137,7 @@ import radialGradient from '@/assets/radialGradient.svg';
 import TimeConver from '@/utils/TimeConver';
 import loadPageVar from '@/utils/loadPageVar';
 // 请求类
-import { getDotData, getDotService } from '@/api/index';
+import { getDotData, getDotService,getYesterdayData} from '@/api/index';
 
 export default {
     name: 'home',
@@ -232,7 +237,10 @@ export default {
                 ]
             },
             timer: null,
-            detailsList: [],
+
+            detailsList: [],     // 服务动态数据
+
+            yesterdayData:'',   // 昨日订单数据
 
             districtName: '深圳市', // 行政区域
             
@@ -246,8 +254,8 @@ export default {
             mountBaiduMap: new BMap.Map('BaiduMap'),
             /**
              * 地图样式
-             * @prop {string} serviceDynamic 服务动态图
              * @prop {string} siteMap 网点地图
+             * @prop {string} serviceDynamic 服务动态图
              */
             mapStyle: 'siteMap',
             /**
@@ -597,10 +605,33 @@ export default {
         },
 
         /**
+         * 刷新 所有网点数据
+         * 每天凌晨 00:00 清空 
+         */
+        refreshDotData: function refreshDotData() {
+            let GetInDotData = parseInt(window.sessionStorage.GetInDotData);
+
+            /**
+             * 因为 每天凌晨 00:00 清空 
+             * 判断当前的日 是否大于 进来的日
+             */
+            if (new Date().getDate() > GetInDotData) {
+                // 如果大于表示过了一天, 重新获取一次所有网点的数据
+                this.ajaxsGetDotData();
+            }
+        },
+
+        /**
          * 获取所有网点数据
          */
         ajaxsGetDotData: function ajaxsGetDotData() {
             const _this = this;
+
+            /**
+             * 因为网点数据是每日凌晨刷新
+             * 所以每次进来都需要记录（覆盖）一下进来加载的时间
+             */
+            window.sessionStorage.setItem('GetInDotData', new Date().getDate());
 
             /**
              * 请求获取所有网点数据
@@ -630,10 +661,29 @@ export default {
                 console.error(error);
                 alert(`请求获取所有网点数据失败, 原因: ${error.message}`);
             });
+
+            /**
+             * 请求获取昨日数据
+             */
+            getYesterdayData()
+            .then(res => {
+                let val = res.data
+
+                if ( val.Code === 200 && !val.Msg ) {
+                    _this.yesterdayData = val.Data;
+                
+                } else {
+                    console.error(error);
+                    alert(`请求获取昨日订单数据失败, 原因: ${val.Msg}`)
+                }
+            }).catch(err=>{
+                console.error(error);
+                alert(`请求获取昨日订单数据失败, 原因: ${err.message}`);
+            });
         },
 
         /**
-         * 初始化地图标记点 
+         * 初始化地图标记点
          */
         initMarkerMap: function initMarkerMap() {
             const _this = this;
@@ -832,6 +882,10 @@ export default {
                     let time = parseInt(new Date(data.details[i].whattime).getTime() / 1000);
                     // console.log(time)
                     let date = parseInt(new Date().getTime() / 1000 - 10 * 60); 
+                    if(data.details[i].carno.length>4){
+                        let str = data.details[i].carno[2]+data.details[i].carno[3]
+                        data.details[i].carno =  data.details[i].carno.replace(str,'**')
+                    }
 
                     // console.log('数据时间:'+time+'现在时间'+date)
 
@@ -979,7 +1033,9 @@ export default {
 
                         // 10分钟执行一次
                         setTimeout(() => {
-                            ajaxgetDotService();
+                            ajaxgetDotService(); // 10分钟 获取网点服务动态数据
+                            _this.refreshDotData(); // 刷新地图标记点
+
                         }, 1000 * 60 * 10);
 
                     } else {
@@ -1138,15 +1194,36 @@ export default {
             .map-style-select {
                 position: absolute;
                 left: 15px;
-                top: 10px;
+                top: 15px;
                 z-index: 1;
             }
 
             .map-server-type {
                 position: absolute;
                 right: 15px;
-                top: 10px;
+                top: 15px;
                 z-index: 1;
+            }
+
+            .map-select {
+                height: 30px;
+                border-radius: 30px;
+                border: 1px solid #374258;
+                font-size: 12px;
+                color: #fff;
+                background: rgba(16, 23, 42, 0.42);
+                cursor: pointer;
+
+                .map-select-item {
+                    padding: 0px 15px;
+                    line-height: 30px;
+                }
+
+                .select-item-active {
+                    border-radius: 30px;
+                    color: rgb(45, 97, 177);
+                    background: #fff;
+                }
             }
         }
 

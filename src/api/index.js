@@ -26,8 +26,21 @@ export function getDotService() {
     // let endTime = '2019-02-16 14:00:00'; // 测试数据
     let beginTime = TimeConver.dateToYYYYmmDDhhMM(new Date(new Date().getTime() - (1000 * 60 * 10)));
     let endTime = TimeConver.dateToYYYYmmDDhhMM(new Date());
+    
     return axios({
         url: `${config.url.origin}/baseapi/Public/GetDotService?beginTime=${encodeURIComponent(beginTime)}&endTime=${encodeURIComponent(endTime)}`,
         method: 'get'
+    });
+}
+
+// 获取昨日订单
+export function getYesterdayData() {
+    // baseapi/Public/GetDotSummery?beginTime=2019-02-10&endTime=2019-02-16
+    let beginTime = TimeConver.dateToFormat(new Date(new Date().getTime() - (1000 * 60 * 60 * 24)));
+    let endTime = TimeConver.dateToFormat(new Date());
+
+    return axios({
+        url:`${config.url.origin}/baseapi/Public/GetDotSummery?beginTime=${beginTime}&endTime=${endTime}`,
+        method:'get'
     });
 }
