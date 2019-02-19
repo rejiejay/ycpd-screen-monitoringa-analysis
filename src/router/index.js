@@ -14,12 +14,6 @@ const routes = [
         component: () => import('@/views/index'),
         meta: { title: '养车频道数据监控平台' },
     }, 
-    {
-        path: '/baidumap',
-        name: 'baidumap',
-        component: () => import('@/views/baidumap'),
-        meta: { title: '养车频道数据监控平台' },
-    }, 
 ];
 
 let router = new Router({

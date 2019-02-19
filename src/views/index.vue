@@ -52,6 +52,7 @@
                                 <tr style="backgroundColor:#121C32">
                                     <td></td>
                                     <td>全部</td>
+                                    <!-- {{item.type==1?'洗车':item.type==2?'加油':item.type==3?'保养':item.type==4?'投诉':''}} -->
                                     <td>洗车</td>
                                     <td>加油</td>
                                     <td>保养</td>
@@ -137,7 +138,7 @@ import radialGradient from '@/assets/radialGradient.svg';
 import TimeConver from '@/utils/TimeConver';
 import loadPageVar from '@/utils/loadPageVar';
 // 请求类
-import { getDotData, getDotService,getYesterdayData} from '@/api/index';
+import { getDotData, getDotService, getYesterdayData } from '@/api/index';
 
 export default {
     name: 'home',
@@ -358,7 +359,8 @@ export default {
 
         this.ajaxsGetDotData(); // 获取网点数据
 
-        this.initDotService(); // 初始化网点服务动态数据
+        this.initFirstDot(); // 初始化网点服务 第一次进来的数据
+        this.initDotService(); // 初始化网点服务 所有 动态数据 的方法
     },
 
     methods: {
@@ -588,7 +590,7 @@ export default {
                     _this.mountBaiduMap.addOverlay(label);
 
                     // 添加多边形层并显示
-                    var ply = new BMap.Polygon(blist[i].points, { strokeWeight: 5, strokeColor: "#FF0000", fillOpacity: 0.01, fillColor: " #FFFFFF" }); // 建立多边形覆盖物
+                    var ply = new BMap.Polygon(blist[i].points, { strokeWeight: 5, strokeColor: "#29467c", fillOpacity: 0.01, fillColor: " #FFFFFF" }); // 建立多边形覆盖物
                     ply.name = blist[i].name;
                     ply.label = label;
                     _this.mountBaiduMap.addOverlay(ply);
@@ -670,14 +672,22 @@ export default {
                 let val = res.data
 
                 if ( val.Code === 200 && !val.Msg ) {
+                    function compare(property){
+                        return function(a,b){
+                            var value1 = a[property];
+                            var value2 = b[property];
+                            return value1 - value2;
+                        }
+                    }
+                    val.Data.summery.sort(compare('type'))
                     _this.yesterdayData = val.Data;
                 
                 } else {
-                    console.error(error);
+                    // console.error(error);
                     alert(`请求获取昨日订单数据失败, 原因: ${val.Msg}`)
                 }
             }).catch(err=>{
-                console.error(error);
+                console.error(err);
                 alert(`请求获取昨日订单数据失败, 原因: ${err.message}`);
             });
         },
@@ -894,7 +904,7 @@ export default {
                     if(time == date){
                         let newdetails = data.details[i];
                         newdetails.id = Math.random();
-
+                        newdetails.dotname = newdetails.dotname.substr(0,9)
                         let date = new Date(data.details[i].whattime)
                         let hours = date.getHours()
                         let min = date.getMinutes()
@@ -1016,16 +1026,27 @@ export default {
                             lat: val.lat,
                         }));
 
+                        function compare(property){
+                            return function(a,b){
+                                var value1 = a[property];
+                                var value2 = b[property];
+                                return value1 - value2;
+                            }
+                        }
+                        value.Data.today.sort(compare('type'))
+                        value.Data.near.sort(compare('type'))
+
                         /**
                          * 处理网点数据
                          */
                         _this.serviceData = value.Data;
+
                         if (_this.serviceData.today.length === 0) {
                             _this.serviceData.today = [
                                 { type: 1, len: 0 },
                                 { type: 2, len: 0 },
                                 { type: 3, len: 0 },
-                                { type: 4, len: 0 },
+                                { type: 4, len: 0 }, 
                             ];
                         }
 
@@ -1042,7 +1063,6 @@ export default {
                         console.error(value);
                         alert(`获取网点服务动态数据失败, 原因: ${value.Msg}`);
                     }
-
                 }).catch(error => {
                     console.error(error);
                     alert(`获取网点服务动态数据失败, 原因: ${error.message}`);
@@ -1096,6 +1116,74 @@ export default {
                 }
             });
         },
+
+        /**
+         * 获取网点服务动态数据前20分钟和前10分钟
+         */
+        initFirstDot: function initFirstDot() {
+            const _this = this;
+            let beginTime = TimeConver.dateToYYYYmmDDhhMM(new Date(new Date().getTime() - (1000 * 60 * 30)));
+            let endTime = TimeConver.dateToYYYYmmDDhhMM(new Date(new Date().getTime() - (1000 * 60 * 10)));
+
+            getDotService(beginTime, endTime)
+            .then(response => {
+                let value = response.data;
+                
+                if (value.Code === 200 && !value.Msg) {
+                    //   console.log(value.Data.details)
+
+                    function compare(property){
+                        return function(a,b){
+                            var value1 = Date.parse(a[property]);
+                            var value2 =  Date.parse(b[property]);
+                            return value2 - value1;
+                        }
+                    }
+                    
+                    value.Data.details.sort(compare('whattime'));
+
+                    for ( let i = 0; i < value.Data.details.length; i++ ) {
+                        let newdetails = value.Data.details[i];
+
+                        if( value.Data.details[i].carno.length > 4 ) {
+                            let str = value.Data.details[i].carno[2] + value.Data.details[i].carno[3];
+                            value.Data.details[i].carno =  value.Data.details[i].carno.replace(str, '**');
+                        }
+
+                        newdetails.dotname = newdetails.dotname.substr(0,9);
+
+                        let date = new Date(newdetails.whattime);
+                        let hours = date.getHours();
+                        let min = date.getMinutes();
+                        let sec = date.getSeconds();
+
+                        if (hours < 10) {
+                            hours = '0' + hours;
+                        }
+
+                        if (min < 10) {
+                            min = '0' + min;
+                        }
+
+                        if (sec < 10) {
+                            sec = '0' + sec;
+                        }
+
+                        // console.log(hours+':'+min+':'+sec)
+                        newdetails.whattime = hours + ':' + min + ':' + sec;
+                    }
+                    
+                    _this.detailsList = value.Data.details.splice(0,5)
+                        
+                } else {
+                    console.error(value);
+                    alert(`获取网点服务动态数据失败, 原因: ${value.Msg}`);
+                }
+            }).catch(error => {
+                console.error(error);
+                alert(`获取网点服务动态数据失败, 原因: ${error.message}`);
+            });
+        }
     },
 }
 
